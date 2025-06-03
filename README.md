@@ -44,8 +44,7 @@ npm run build
 ### Kullanıcı için
 
 1. [Releases](https://github.com/blackeker/oneko/releases) sayfasından en son sürümü indirin
-2. İndirilen `.exe` dosyasını çalıştırın
-3. Kurulum sihirbazını takip edin
+2. İndirilen `.exe` dosyasını çalıştırın (kurulum gerekmez)
 
 ## Kullanım
 
