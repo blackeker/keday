@@ -22,7 +22,7 @@ Uygulama, Electron framework'ü kullanılarak geliştirilmiştir ve Windows işl
 
 1. Projeyi klonlayın:
 ```bash
-git clone https://github.com/kullaniciadi/oneko.git
+git clone https://github.com/blackeker/oneko.git
 cd oneko
 ```
 
@@ -43,7 +43,7 @@ npm run build
 
 ### Kullanıcı için
 
-1. [Releases](https://github.com/kullaniciadi/oneko/releases) sayfasından en son sürümü indirin
+1. [Releases](https://github.com/blackeker/oneko/releases) sayfasından en son sürümü indirin
 2. İndirilen `.exe` dosyasını çalıştırın
 3. Kurulum sihirbazını takip edin
 
@@ -58,6 +58,13 @@ npm run build
 - Windows 10 veya üzeri
 - Node.js (geliştirme için)
 
+## Destek
+
+Sorun yaşarsanız veya yardıma ihtiyacınız olursa:
+- Discord sunucumuza katılın: [https://discord.gg/aeris](https://discord.gg/aeris)
+- Discord'da `blackeker` kullanıcısına mesaj atın
+
 ## Lisans
 
-ISC 
+MIT License
+
