@@ -1,2 +1,63 @@
-# oneko
-Fare imlecini takip eden sevimli kedi
+# Oneko Kedi
+
+Masaüstünüzde fare imlecini takip eden sevimli bir kedi uygulaması.
+
+## Açıklama
+
+Oneko Kedi, klasik Unix terminal uygulaması "oneko"nun modern bir masaüstü versiyonudur. Bu uygulama, masaüstünüzde fare imlecini takip eden sevimli bir kedi karakteri ekler. Kedi, fare imlecinizin hareketlerini takip eder ve farklı durumlarda (koşma, uyuma, tırmalama vb.) farklı animasyonlar gösterir.
+
+Uygulama, Electron framework'ü kullanılarak geliştirilmiştir ve Windows işletim sisteminde çalışır. Şeffaf bir pencere kullanarak masaüstünüzdeki diğer uygulamaları etkilemeden çalışır. Sistem tepsisinde bir simge ile kolay erişim sağlar ve istediğiniz zaman kediyi gösterip gizleyebilirsiniz.
+
+## Özellikler
+
+- 🐱 Fare imlecini takip eden sevimli kedi
+- 🖥️ Masaüstünüzde her zaman en üstte kalır
+- 🖱️ Fare tıklamaları kedinin altındaki uygulamalara geçer
+- 🔔 Sistem tepsisinde kolay erişim
+- 👆 Tek tıkla kediyi gösterip gizleyebilme
+
+## Kurulum
+
+### Geliştirici için
+
+1. Projeyi klonlayın:
+```bash
+git clone https://github.com/kullaniciadi/oneko.git
+cd oneko
+```
+
+2. Bağımlılıkları yükleyin:
+```bash
+npm install
+```
+
+3. Uygulamayı başlatın:
+```bash
+npm start
+```
+
+4. Uygulamayı derleyin:
+```bash
+npm run build
+```
+
+### Kullanıcı için
+
+1. [Releases](https://github.com/kullaniciadi/oneko/releases) sayfasından en son sürümü indirin
+2. İndirilen `.exe` dosyasını çalıştırın
+3. Kurulum sihirbazını takip edin
+
+## Kullanım
+
+- Uygulama başladığında masaüstünüzde fare imlecini takip eden bir kedi göreceksiniz
+- Sistem tepsisindeki kedi simgesine tıklayarak kediyi gösterip gizleyebilirsiniz
+- Çıkış yapmak için sistem tepsisindeki simgeye sağ tıklayıp "Çıkış"ı seçin
+
+## Gereksinimler
+
+- Windows 10 veya üzeri
+- Node.js (geliştirme için)
+
+## Lisans
+
+ISC 
