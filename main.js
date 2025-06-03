@@ -2,11 +2,20 @@ const { app, BrowserWindow, screen, Tray, Menu, ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
+// Disable hardware acceleration
+app.disableHardwareAcceleration();
+
 let mainWindow;
 let tray;
 let isVisible = true;
 
 const iconPath = path.join(__dirname, 'assets', 'icon.png');
+const icoPath = path.join(__dirname, 'assets', 'icon.ico');
+
+// Disable GPU acceleration
+app.commandLine.appendSwitch('disable-gpu');
+// Disable GPU compositing
+app.commandLine.appendSwitch('disable-gpu-compositing');
 
 function toggleCat() {
     if (mainWindow) {
@@ -45,7 +54,7 @@ function createWindow() {
         transparent: true,
         frame: false,
         alwaysOnTop: true,
-        type: 'toolbar',
+        skipTaskbar: true,
         icon: iconPath,
         hasShadow: false,
         webPreferences: {
@@ -57,15 +66,17 @@ function createWindow() {
     mainWindow.setBackgroundColor('#00000000');
     
     mainWindow.loadFile('index.html');
-    mainWindow.setAlwaysOnTop(true, 'screen-saver');
+    mainWindow.setAlwaysOnTop(true, 'floating');
     mainWindow.setVisibleOnAllWorkspaces(true);
     mainWindow.setIgnoreMouseEvents(true, { forward: true });
 
-    setInterval(() => {
-        if (!mainWindow.isAlwaysOnTop()) {
-            mainWindow.setAlwaysOnTop(true, 'screen-saver');
+    // Automatically toggle window visibility after a short delay to fix initial rendering issues
+    setTimeout(() => {
+        if (mainWindow) {
+            mainWindow.hide();
+            mainWindow.show();
         }
-    }, 1000);
+    }, 200); // 200ms delay
 
     createTray();
 }

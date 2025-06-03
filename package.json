@@ -17,8 +17,10 @@
     "appId": "com.oneko.app",
     "win": {
       "target": "portable",
-      "icon": "assets/icon.ico"
-    },
-    "asar": true
+      "icon": "assets/icon.ico",
+      "unpackDirs": [
+        "node_modules"
+      ]
+    }
   }
 }
