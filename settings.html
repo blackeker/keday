@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Oneko</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --background-color: #f8f9fa;
+            --card-background: #ffffff;
+            --text-color: #2c3e50;
+            --border-radius: 12px;
+            --transition: all 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        @keyframes glow {
+            0% { box-shadow: 0 0 5px rgba(52, 152, 219, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(52, 152, 219, 0.8); }
+            100% { box-shadow: 0 0 5px rgba(52, 152, 219, 0.5); }
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: var(--background-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .container {
+            max-width: 500px;
+            width: 100%;
+            margin: 0 auto;
+            background: var(--card-background);
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            animation: glow 3s infinite;
+        }
+
+        h2 {
+            margin: 0 0 30px 0;
+            color: var(--secondary-color);
+            text-align: center;
+            font-size: 28px;
+            font-weight: 600;
+            position: relative;
+            padding-bottom: 15px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: var(--primary-color);
+            border-radius: 2px;
+        }
+
+        .setting-group {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: var(--background-color);
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .setting-group:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .setting-group h3 {
+            margin: 0 0 15px 0;
+            color: var(--secondary-color);
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .setting-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 15px;
+            background: var(--card-background);
+            border-radius: 8px;
+            transition: var(--transition);
+        }
+
+        .setting-item:hover {
+            background: #f0f4f8;
+        }
+
+        .setting-label {
+            font-weight: 500;
+            color: var(--secondary-color);
+        }
+
+        .setting-control {
+            display: flex;
+            align-items: center;
+        }
+
+        .value-display {
+            display: inline-block;
+            min-width: 40px;
+            font-weight: 600;
+            color: var(--primary-color);
+            text-align: right;
+            float: right;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+            margin: 10px 0;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        input[type="checkbox"] {
+            display: none;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 8px 0;
+            position: relative;
+            padding-left: 35px;
+            user-select: none;
+        }
+
+        .checkbox-label::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 24px;
+            height: 24px;
+            background: #e0e0e0;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        input[type="checkbox"]:checked + .checkbox-label::before {
+            background: var(--primary-color);
+        }
+
+        .checkbox-label::after {
+            content: '✓';
+            position: absolute;
+            left: 6px;
+            top: 50%;
+            transform: translateY(-50%) scale(0);
+            color: white;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        input[type="checkbox"]:checked + .checkbox-label::after {
+            transform: translateY(-50%) scale(1);
+        }
+
+        .checkbox-label:hover::before {
+            background: #d0d0d0;
+        }
+
+        input[type="checkbox"]:checked + .checkbox-label:hover::before {
+            background: #2980b9;
+        }
+
+        .character-select {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .character-option {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: var(--border-radius);
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            background: var(--card-background);
+        }
+
+        .character-option:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        .character-option.selected {
+            border-color: var(--primary-color);
+            background: #ebf5fb;
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.1);
+        }
+
+        .character-option img {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 10px;
+            transition: var(--transition);
+        }
+
+        .character-option:hover img {
+            transform: scale(1.1);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            font-size: 14px;
+            color: #666;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+
+            .character-select {
+                flex-direction: column;
+            }
+        }
+
+        /* Toggle Switch Stilleri */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+            margin-right: 10px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--primary-color);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+
+        .shadow-settings {
+            display: none;
+            margin-left: 20px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.03);
+            border-radius: 8px;
+            margin-top: 5px;
+        }
+
+        .shadow-settings.active {
+            display: block;
+        }
+
+        /* Yeni buton stilleri */
+        .game-button, .badge-button, .task-button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            background: var(--primary-color);
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .game-button:hover, .badge-button:hover, .task-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
+        }
+
+        .game-button:active, .badge-button:active, .task-button:active {
+            transform: translateY(0);
+        }
+
+        /* Modal stilleri */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            min-width: 300px;
+            max-width: 80%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .close-button {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        /* Badge stilleri */
+        .badge-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 15px;
+            padding: 15px;
+        }
+
+        .badge-item {
+            text-align: center;
+            padding: 10px;
+            border-radius: 8px;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+
+        .badge-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .badge-item img {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 8px;
+        }
+
+        .badge-item.locked {
+            opacity: 0.5;
+        }
+
+        /* Task stilleri */
+        .task-list {
+            padding: 15px;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .task-item:last-child {
+            border-bottom: none;
+        }
+
+        .task-checkbox {
+            margin-right: 10px;
+        }
+
+        .task-progress {
+            margin-left: auto;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .about-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: var(--background-color);
+            border-radius: var(--border-radius);
+            text-align: center;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .about-section h3 {
+            color: var(--secondary-color);
+            margin-bottom: 15px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .about-section p {
+            margin: 10px 0;
+            color: var(--text-color);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 15px 0;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .social-link {
+            display: inline-block;
+            padding: 10px 20px;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: var(--transition);
+            cursor: pointer;
+            animation: pulse 2s infinite;
+        }
+
+        .social-link:hover {
+            transform: translateY(-2px) scale(1.1);
+        }
+
+        .discord-link {
+            background: #7289DA;
+        }
+
+        .discord-link:hover {
+            background: #5f73bc;
+        }
+
+        .github-link {
+            background: #333;
+        }
+
+        .github-link:hover {
+            background: #24292e;
+        }
+
+        .instagram-link {
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+        }
+
+        .instagram-link:hover {
+            opacity: 0.9;
+        }
+
+        .credits {
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #666;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .credits p {
+            animation: fadeIn 0.5s ease-out;
+            animation-fill-mode: both;
+        }
+
+        .credits p:nth-child(1) { animation-delay: 0.1s; }
+        .credits p:nth-child(2) { animation-delay: 0.2s; }
+        .credits p:nth-child(3) { animation-delay: 0.3s; }
+
+        .project-link {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 8px 16px;
+            color: var(--primary-color);
+            text-decoration: none;
+            border-radius: 5px;
+            transition: var(--transition);
+            animation: pulse 2s infinite;
+        }
+
+        .project-link:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Karakter Ayarları</h2>
+        
+        <div class="setting-group">
+            <h3>Karakter Seçimi</h3>
+            <div class="character-select">
+                <div class="character-option" data-character="neko">
+                    <img src="assets/icon.png" alt="Neko">
+                    <div>Kedi</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="setting-group">
+            <h3>Hareket Ayarları</h3>
+            <div class="setting-item">
+                <label for="speedRange">Karakter Hızı: <span id="speedValue" class="value-display">10</span></label>
+                <input type="range" id="speedRange" min="1" max="50" value="25" />
+            </div>
+            <div class="setting-item">
+                <label for="sizeRange">Karakter Boyutu: <span id="sizeValue" class="value-display">100%</span></label>
+                <input type="range" id="sizeRange" min="1" max="300" value="300" />
+            </div>
+        </div>
+
+        <div class="setting-group">
+            <h3>Görünüm Ayarları</h3>
+            <div class="setting-item">
+                <span class="setting-label">Her Zaman Üstte</span>
+                <div class="setting-control">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="alwaysOnTop" checked />
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="setting-group">
+            <h3>Başlangıç Ayarları</h3>
+            <div class="setting-item">
+                <span class="setting-label">Windows Başlangıcında Çalıştır</span>
+                <div class="setting-control">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="autoLaunch" />
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+            <div class="setting-item">
+                <span class="setting-label">Kapatınca Sistem Tepsisine Küçült</span>
+                <div class="setting-control">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="minimizeToTray" checked />
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="about-section">
+            <h3>Hakkında</h3>
+            <p>Oneko Kedi v1.0.3</p>
+            <p>Yapımcı: Blackeker</p>
+            <div class="social-links">
+                <button onclick="openDiscord()" class="social-link discord-link">Discord</button>
+                <button onclick="openGithub()" class="social-link github-link">GitHub</button>
+                <button onclick="openInstagram()" class="social-link instagram-link">Instagram</button>
+            </div>
+            <a href="#" onclick="openProject()" class="project-link">Projeyi GitHub'da Görüntüle</a>
+            <div class="credits">
+                <p>Bu uygulama açık kaynaklıdır ve topluluk katkılarıyla geliştirilmektedir.</p>
+                <p>Teşekkürler:</p>
+                <p>- Henüz kimse yok burda :(</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            Oneko v1.0.3
+        </div>
+    </div>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+
+        // Mevcut ayarları al
+        ipcRenderer.send('get-current-speed');
+        ipcRenderer.send('get-current-size');
+        ipcRenderer.send('get-always-on-top');
+        ipcRenderer.send('get-current-character');
+        ipcRenderer.send('get-idle-time');
+        ipcRenderer.send('get-opacity');
+        ipcRenderer.send('get-follow-mouse');
+        ipcRenderer.send('get-sound-effects');
+        ipcRenderer.send('get-emotions');
+        ipcRenderer.send('get-trail');
+        ipcRenderer.send('get-minimize-to-tray');
+        ipcRenderer.send('get-auto-launch');
+
+        // Hız ayarı
+        const speedSlider = document.getElementById('speedRange');
+        ipcRenderer.on('current-speed', (event, speed) => {
+            speedSlider.value = speed;
+            document.getElementById('speedValue').textContent = speed;
+        });
+        speedSlider.addEventListener('input', (e) => {
+            const speed = parseInt(e.target.value);
+            document.getElementById('speedValue').textContent = speed;
+            ipcRenderer.send('set-speed', speed);
+        });
+
+        // Boyut ayarı
+        const sizeSlider = document.getElementById('sizeRange');
+        ipcRenderer.on('current-size', (event, size) => {
+            sizeSlider.value = size;
+            document.getElementById('sizeValue').textContent = size;
+        });
+        sizeSlider.addEventListener('input', (e) => {
+            const size = parseInt(e.target.value);
+            document.getElementById('sizeValue').textContent = size;
+            ipcRenderer.send('set-size', size);
+        });
+
+        // Her zaman üstte
+        const alwaysOnTopCheckbox = document.getElementById('alwaysOnTop');
+        ipcRenderer.on('always-on-top-status', (event, enabled) => {
+            alwaysOnTopCheckbox.checked = enabled;
+        });
+        alwaysOnTopCheckbox.addEventListener('change', (e) => {
+            ipcRenderer.send('set-always-on-top', e.target.checked);
+        });
+
+        // Karakter seçimi
+        const characterOptions = document.querySelectorAll('.character-option');
+        ipcRenderer.on('current-character', (event, character) => {
+            characterOptions.forEach(option => {
+                option.classList.toggle('selected', option.dataset.character === character);
+            });
+        });
+        characterOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                ipcRenderer.send('set-character', option.dataset.character);
+            });
+        });
+
+        // Bekleme süresi
+        const idleTimeSlider = document.getElementById('idleTimeRange');
+        ipcRenderer.on('idle-time-status', (event, time) => {
+            idleTimeSlider.value = time;
+            document.getElementById('idleTimeValue').textContent = time;
+        });
+        idleTimeSlider.addEventListener('input', (e) => {
+            const time = parseInt(e.target.value);
+            document.getElementById('idleTimeValue').textContent = time;
+            ipcRenderer.send('set-idle-time', time);
+        });
+
+        // Opaklık
+        const opacitySlider = document.getElementById('opacity');
+        ipcRenderer.on('opacity-status', (event, opacity) => {
+            opacitySlider.value = opacity;
+            document.getElementById('opacity-value').textContent = opacity;
+        });
+        opacitySlider.addEventListener('input', (e) => {
+            const opacity = parseInt(e.target.value);
+            document.getElementById('opacity-value').textContent = opacity;
+            ipcRenderer.send('set-opacity', opacity);
+        });
+
+        // Fare takibi
+        const followMouseCheckbox = document.getElementById('followMouse');
+        ipcRenderer.on('follow-mouse-status', (event, enabled) => {
+            followMouseCheckbox.checked = enabled;
+        });
+        followMouseCheckbox.addEventListener('change', (e) => {
+            ipcRenderer.send('set-follow-mouse', e.target.checked);
+        });
+
+        // Ses efektleri
+        const soundEffectsCheckbox = document.getElementById('playSounds');
+        ipcRenderer.on('sound-effects-status', (event, enabled) => {
+            soundEffectsCheckbox.checked = enabled;
+        });
+        soundEffectsCheckbox.addEventListener('change', (e) => {
+            ipcRenderer.send('set-sound-effects', e.target.checked);
+        });
+
+        // Duygu ifadeleri
+        const emotionsCheckbox = document.getElementById('showEmotions');
+        ipcRenderer.on('emotions-status', (event, enabled) => {
+            emotionsCheckbox.checked = enabled;
+        });
+        emotionsCheckbox.addEventListener('change', (e) => {
+            ipcRenderer.send('set-emotions', e.target.checked);
+        });
+
+        // Hareket izi
+        const trailCheckbox = document.getElementById('showTrail');
+        ipcRenderer.on('trail-status', (event, enabled) => {
+            trailCheckbox.checked = enabled;
+        });
+        trailCheckbox.addEventListener('change', (e) => {
+            ipcRenderer.send('set-trail', e.target.checked);
+        });
+
+        // Simgeye küçült
+        const minimizeToTrayCheckbox = document.getElementById('minimizeToTray');
+        ipcRenderer.on('minimize-to-tray-status', (event, enabled) => {
+            minimizeToTrayCheckbox.checked = enabled;
+        });
+        minimizeToTrayCheckbox.addEventListener('change', (e) => {
+            ipcRenderer.send('set-minimize-to-tray', e.target.checked);
+        });
+
+        // Otomatik başlat
+        const autoLaunchCheckbox = document.getElementById('autoLaunch');
+        ipcRenderer.on('auto-launch-status', (event, enabled) => {
+            autoLaunchCheckbox.checked = enabled;
+        });
+        autoLaunchCheckbox.addEventListener('change', (e) => {
+            ipcRenderer.send('set-auto-launch', e.target.checked);
+        });
+
+        // Sayfa yüklendiğinde mevcut ayarları al
+        document.addEventListener('DOMContentLoaded', () => {
+            // Tüm checkbox'ları kontrol et
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                const eventName = checkbox.id + '-status';
+                ipcRenderer.send('get-' + eventName);
+            });
+        });
+
+        function openDiscord() {
+            require('electron').shell.openExternal('https://discord.gg/aeris');
+        }
+
+        function openGithub() {
+            require('electron').shell.openExternal('https://github.com/blackeker');
+        }
+
+        function openInstagram() {
+            require('electron').shell.openExternal('https://instagram.com/blackekerr');
+        }
+
+        function openProject() {
+            require('electron').shell.openExternal('https://github.com/blackeker/oneko');
+        }
+    </script>
+</body>
+</html> 

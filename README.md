@@ -60,10 +60,15 @@ npm run build
 ## Destek
 
 Sorun yaşarsanız veya yardıma ihtiyacınız olursa:
-- Discord sunucumuza katılın: [https://discord.gg/aeris](https://discord.gg/aeris)
-- Discord'da `blackeker` kullanıcısına mesaj atın
+- Discord Sunucusu: [https://discord.gg/aeris](https://discord.gg/aeris)
+- GitHub Profilim: [https://github.com/blackeker](https://github.com/blackeker)
+- Instagram: [@blackekerr](https://instagram.com/blackekerr)
+- Proje Linki: [https://github.com/blackeker/oneko](https://github.com/blackeker/oneko)
 
 ## Lisans
 
 MIT License
 
+## Ha Bide
+
+### TOPUNUZUN MQ
