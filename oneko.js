@@ -1,7 +1,15 @@
-// oneko.js: Canvas tabanlı Oneko
 (function onekoCanvas() {
   const { ipcRenderer } = require('electron');
   console.log('Oneko başlatılıyor...');
+  
+  // Ana süreçten mevcut hızı al
+  ipcRenderer.send('get-current-speed');
+
+  // Mevcut hız güncellemelerini dinle
+  ipcRenderer.on('current-speed', (event, speed) => {
+    nekoSpeed = speed;
+    console.log('Başlangıç/Güncel hız alındı:', speed);
+  });
   
   const canvas = document.getElementById('oneko-canvas');
   if (!canvas) {
@@ -10,24 +18,56 @@
   }
   console.log('Canvas bulundu:', canvas.width, 'x', canvas.height);
   
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { alpha: true, desynchronized: true });
   if (!ctx) {
     console.error('Canvas context oluşturulamadı!');
     return;
   }
   console.log('Canvas context oluşturuldu');
   
+  // Double buffering için offscreen canvas
+  const offscreenCanvas = document.createElement('canvas');
+  const offscreenCtx = offscreenCanvas.getContext('2d', { alpha: true, desynchronized: true });
+  
   // Canvas boyutunu ayarla
   function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+    offscreenCanvas.width = canvas.width;
+    offscreenCanvas.height = canvas.height;
     console.log('Canvas boyutu güncellendi:', canvas.width, 'x', canvas.height);
   }
   
   window.addEventListener('resize', resizeCanvas);
   resizeCanvas();
   
-  const sprite = new Image();
+  // Sprite önbellekleme
+  const spriteCache = new Map();
+
+  function loadSprite(src) {
+    if (spriteCache.has(src)) {
+        return spriteCache.get(src);
+    }
+
+    const img = new Image();
+    img.src = src;
+    spriteCache.set(src, img);
+    return img;
+  }
+
+  // Kaynakları temizle
+  function cleanup() {
+    spriteCache.clear();
+    offscreenCanvas.width = 0;
+    offscreenCanvas.height = 0;
+    canvas.width = 0;
+    canvas.height = 0;
+  }
+
+  // Pencere kapatıldığında kaynakları temizle
+  window.addEventListener('beforeunload', cleanup);
+  
+  const sprite = loadSprite('assets/oneko.gif');
   console.log('Sprite yükleniyor...');
   
   // Sprite yükleme işlemi
@@ -49,11 +89,11 @@
     console.error('Sprite yükleme hatası:', error);
     console.log('Yüklenmeye çalışılan dosya:', sprite.src);
     console.log('Alternatif sprite deneniyor...');
-    sprite.src = './assets/icon.png';
+    sprite.src = 'assets/icon.png';
   };
   
   // Sprite'ı yükle
-  sprite.src = './assets/oneko.gif';
+  sprite.src = 'assets/oneko.gif';
   console.log('Sprite yükleme isteği gönderildi');
 
   const spriteSets = {
@@ -80,10 +120,6 @@
   let nekoPosY = 32;
   let mousePosX = 0;
   let mousePosY = 0;
-  let frameCount = 0;
-  let idleTime = 0;
-  let idleAnimation = null;
-  let idleAnimationFrame = 0;
   let nekoSpeed = 10;
   let nekoSize = 100;
   let currentSprite = 'idle';
@@ -91,6 +127,21 @@
   let lastFrameTime = 0;
   const frameDelay = 100;
   let followMouse = true;
+
+  // Animasyon kontrolü için değişkenler
+  let frameCount = 0;
+  let lastFPSUpdate = 0;
+
+  // FPS kontrolü
+  function updateFPS(now) {
+    frameCount++;
+    if (now - lastFPSUpdate >= 1000) {
+      const fps = Math.round((frameCount * 1000) / (now - lastFPSUpdate));
+      console.log(`FPS: ${fps}`);
+      frameCount = 0;
+      lastFPSUpdate = now;
+    }
+  }
 
   // Fare hareketini takip et
   document.addEventListener('mousemove', function(event) {
@@ -106,43 +157,53 @@
     const distance = Math.sqrt(dx * dx + dy * dy);
 
     // Fareye yakın olduğunda hareket etmeyi durdur
-    if (distance < 10) {
+    if (distance < 8) {
       currentSprite = 'idle';
       return;
     }
 
-    // Hareket hızını mesafeye göre ayarla
-    const speed = Math.min(nekoSpeed, distance / 2);
-    nekoPosX += (dx / distance) * speed;
-    nekoPosY += (dy / distance) * speed;
+    // Hareket hızını ayarla
+    const normalizedDx = dx / distance;
+    const normalizedDy = dy / distance;
+
+    // Hızı mesafeye göre ayarla
+    const speed = Math.min(nekoSpeed, distance * 0.5);
+
+    nekoPosX += normalizedDx * speed;
+    nekoPosY += normalizedDy * speed;
       
-      // Yön belirleme
-      if (Math.abs(dx) > Math.abs(dy)) {
-        currentSprite = dx > 0 ? 'E' : 'W';
-      } else {
-        currentSprite = dy > 0 ? 'S' : 'N';
+    // Yön belirleme
+    if (Math.abs(dx) > Math.abs(dy)) {
+      currentSprite = dx > 0 ? 'E' : 'W';
+    } else {
+      currentSprite = dy > 0 ? 'S' : 'N';
     }
   }
 
-  function animate() {
-    const now = Date.now();
-    if (now - lastFrameTime < frameDelay) {
+  // Animasyon fonksiyonu
+  function animate(timestamp) {
+    // FPS kontrolü
+    updateFPS(timestamp);
+
+    // Frame rate kontrolü
+    if (timestamp - lastFrameTime < frameDelay) {
       requestAnimationFrame(animate);
       return;
     }
-    lastFrameTime = now;
+    lastFrameTime = timestamp;
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Offscreen canvas'ı temizle
+    offscreenCtx.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
 
     // Kedi pozisyonunu güncelle
     updateNekoPosition();
 
-    // Karakteri çiz
+    // Karakteri offscreen canvas'a çiz
     if (sprite.complete) {
       const spriteFrame = spriteSets[currentSprite][currentFrame];
       if (spriteFrame) {
         const size = 32 * (nekoSize / 100);
-        ctx.drawImage(
+        offscreenCtx.drawImage(
           sprite,
           spriteFrame[0] * 32,
           spriteFrame[1] * 32,
@@ -156,6 +217,10 @@
       }
     }
 
+    // Offscreen canvas'ı ana canvas'a kopyala
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(offscreenCanvas, 0, 0);
+
     // Animasyon karelerini güncelle
     currentFrame = (currentFrame + 1) % spriteSets[currentSprite].length;
 
@@ -163,7 +228,7 @@
   }
 
   // Animasyonu başlat
-  animate();
+  requestAnimationFrame(animate);
 
   // IPC olaylarını dinle
   ipcRenderer.on('set-speed', (event, speed) => {

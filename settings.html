@@ -5,36 +5,176 @@
     <title>Oneko</title>
     <style>
         :root {
-            --primary-color: #3498db;
-            --secondary-color: #2c3e50;
-            --background-color: #f8f9fa;
-            --card-background: #ffffff;
-            --text-color: #2c3e50;
-            --border-radius: 12px;
-            --transition: all 0.3s ease;
+            /* Varsayılan Tema */
+            --primary-color: #6C63FF;
+            --secondary-color: #4A45B1;
+            --background-color: #F0F2FF;
+            --card-background: #FFFFFF;
+            --text-color: #2D2B55;
+            --border-radius: 16px;
+            --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            --gradient: linear-gradient(135deg, #6C63FF 0%, #4A45B1 100%);
+            --input-background: #FFFFFF;
+            --input-text: #2D2B55;
+            --input-border: rgba(108, 99, 255, 0.2);
+            --input-focus: rgba(108, 99, 255, 0.4);
+            --button-background: #6C63FF;
+            --button-text: #FFFFFF;
+            --button-hover: #4A45B1;
+            --theme-name: "Açık";
+            --theme-icon: "sun";
+            --theme-button-bg: #6C63FF;
+            --theme-button-text: #FFFFFF;
+            --theme-button-hover: #4A45B1;
+            --theme-button-active-border: #FFD700;
+            --theme-button-active-shadow: #FFD700;
+            /* About Section Temaya Bağlı Renkler */
+            --about-bg: linear-gradient(135deg, #f0f2ff, #e0e7ff);
+            --about-title: #6C63FF;
+            --about-title-glow: #b3b0ff;
+            --about-text: #2D2B55;
+            --about-highlight: #FFD700;
+            --about-link: #6C63FF;
+            --about-link-hover: #4A45B1;
+            --about-btn-bg: #6C63FF;
+            --about-btn-text: #fff;
+            --about-btn-glow: #FFD700;
+            --about-shadow: 0 0 20px #b3b0ff, 0 0 40px #6C63FF, 0 0 60px #4A45B1;
         }
 
+        [data-theme="dark"] {
+            --primary-color: #4A90E2;
+            --secondary-color: #357ABD;
+            --background-color: #1A1A2E;
+            --card-background: #16213E;
+            --text-color: #E0E7FF;
+            --input-background: #1E2A3A;
+            --input-text: #E0E7FF;
+            --input-border: rgba(74, 144, 226, 0.2);
+            --input-focus: rgba(74, 144, 226, 0.4);
+            --button-background: #4A90E2;
+            --button-text: #FFFFFF;
+            --button-hover: #357ABD;
+            --theme-button-bg: #4A90E2;
+            --theme-button-text: #FFFFFF;
+            --theme-button-hover: #357ABD;
+            --theme-button-active-border: #00BFFF;
+            --theme-button-active-shadow: #00BFFF;
+            --about-bg: linear-gradient(135deg, #1A1A2E, #16213E);
+            --about-title: #4A90E2;
+            --about-title-glow: #357ABD;
+            --about-text: #E0E7FF;
+            --about-highlight: #FFD700;
+            --about-link: #4A90E2;
+            --about-link-hover: #357ABD;
+            --about-btn-bg: #4A90E2;
+            --about-btn-text: #fff;
+            --about-btn-glow: #00BFFF;
+            --about-shadow: 0 0 20px #357ABD, 0 0 40px #4A90E2, 0 0 60px #16213E;
+        }
+
+        [data-theme="pink"] {
+            --primary-color: #FF69B4;
+            --secondary-color: #FF1493;
+            --background-color: #FFF0F5;
+            --card-background: #FFE4E1;
+            --text-color: #4B0082;
+            --input-background: #FFFFFF;
+            --input-text: #4B0082;
+            --input-border: rgba(255, 105, 180, 0.2);
+            --input-focus: rgba(255, 105, 180, 0.4);
+            --button-background: #FF69B4;
+            --button-text: #FFFFFF;
+            --button-hover: #FF1493;
+            --theme-button-bg: #FF69B4;
+            --theme-button-text: #FFFFFF;
+            --theme-button-hover: #FF1493;
+            --theme-button-active-border: #FF69B4;
+            --theme-button-active-shadow: #FFB6C1;
+            --about-bg: linear-gradient(135deg, #FFF0F5, #FFE4E1);
+            --about-title: #FF69B4;
+            --about-title-glow: #FFB6C1;
+            --about-text: #4B0082;
+            --about-highlight: #FF69B4;
+            --about-link: #FF69B4;
+            --about-link-hover: #FF1493;
+            --about-btn-bg: #FF69B4;
+            --about-btn-text: #fff;
+            --about-btn-glow: #FFB6C1;
+            --about-shadow: 0 0 20px #FFB6C1, 0 0 40px #FF69B4, 0 0 60px #FF1493;
+        }
+        
+        [data-theme="green"] {
+            --primary-color: #32CD32;              /* Lime Green */
+            --secondary-color: #228B22;            /* Forest Green */
+            --background-color: #F0FFF0;           /* Honeydew */
+            --card-background: #E0F8E0;            /* Açık yeşil kart zemin */
+            --text-color: #064420;                 /* Koyu yeşil ton */
+            --input-background: #FFFFFF;
+            --input-text: #064420;
+            --input-border: rgba(50, 205, 50, 0.2);
+            --input-focus: rgba(50, 205, 50, 0.4);
+            --button-background: #32CD32;
+            --button-text: #FFFFFF;
+            --button-hover: #228B22;
+            --theme-button-bg: #32CD32;
+            --theme-button-text: #FFFFFF;
+            --theme-button-hover: #228B22;
+            --theme-button-active-border: #32CD32;
+            --theme-button-active-shadow: #98FB98; /* Pale Green Glow */
+            --about-bg: linear-gradient(135deg, #F0FFF0, #E0F8E0);
+            --about-title: #32CD32;
+            --about-title-glow: #98FB98;
+            --about-text: #064420;
+            --about-highlight: #32CD32;
+            --about-link: #32CD32;
+            --about-link-hover: #228B22;
+            --about-btn-bg: #32CD32;
+            --about-btn-text: #fff;
+            --about-btn-glow: #98FB98;
+            --about-shadow: 0 0 20px #98FB98, 0 0 40px #32CD32, 0 0 60px #228B22;
+        }
+
+
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from { 
+                opacity: 0; 
+                transform: translateY(30px) scale(0.95);
+                filter: blur(10px);
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0) scale(1);
+                filter: blur(0);
+            }
         }
 
         @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(108, 99, 255, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(108, 99, 255, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(108, 99, 255, 0); }
         }
 
         @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-            100% { transform: translateY(0px); }
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(2deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
         }
 
         @keyframes glow {
-            0% { box-shadow: 0 0 5px rgba(52, 152, 219, 0.5); }
-            50% { box-shadow: 0 0 20px rgba(52, 152, 219, 0.8); }
-            100% { box-shadow: 0 0 5px rgba(52, 152, 219, 0.5); }
+            0% { box-shadow: 0 0 5px rgba(108, 99, 255, 0.5), 0 0 10px rgba(108, 99, 255, 0.3); }
+            50% { box-shadow: 0 0 20px rgba(108, 99, 255, 0.8), 0 0 30px rgba(108, 99, 255, 0.5); }
+            100% { box-shadow: 0 0 5px rgba(108, 99, 255, 0.5), 0 0 10px rgba(108, 99, 255, 0.3); }
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
 
         body {
@@ -47,7 +187,10 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            animation: fadeIn 0.5s ease-out;
+            animation: fadeIn 0.8s ease-out;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(108, 99, 255, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(74, 69, 177, 0.1) 0%, transparent 20%);
         }
 
         .container {
@@ -57,19 +200,33 @@
             background: var(--card-background);
             padding: 30px;
             border-radius: var(--border-radius);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 30px rgba(108, 99, 255, 0.1);
             animation: glow 3s infinite;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient);
+            animation: shimmer 2s infinite linear;
         }
 
         h2 {
             margin: 0 0 30px 0;
             color: var(--secondary-color);
             text-align: center;
-            font-size: 28px;
-            font-weight: 600;
+            font-size: 32px;
+            font-weight: 700;
             position: relative;
             padding-bottom: 15px;
-            animation: float 3s ease-in-out infinite;
+            animation: float 4s ease-in-out infinite;
+            text-shadow: 2px 2px 4px rgba(108, 99, 255, 0.1);
         }
 
         h2::after {
@@ -78,91 +235,222 @@
             bottom: 0;
             left: 50%;
             transform: translateX(-50%);
-            width: 60px;
-            height: 3px;
-            background: var(--primary-color);
+            width: 80px;
+            height: 4px;
+            background: var(--gradient);
             border-radius: 2px;
+            animation: pulse 2s infinite;
         }
 
         .setting-group {
             margin-bottom: 25px;
-            padding: 20px;
+            padding: 25px;
             background: var(--background-color);
             border-radius: var(--border-radius);
             transition: var(--transition);
-            animation: fadeIn 0.5s ease-out;
+            animation: slideIn 0.5s ease-out;
+            border: 1px solid rgba(108, 99, 255, 0.1);
         }
 
         .setting-group:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transform: translateY(-3px) scale(1.01);
+            box-shadow: 0 8px 20px rgba(108, 99, 255, 0.15);
+            border-color: rgba(108, 99, 255, 0.2);
         }
 
         .setting-group h3 {
-            margin: 0 0 15px 0;
+            margin: 0 0 20px 0;
             color: var(--secondary-color);
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            animation: fadeIn 0.5s ease-out;
         }
 
         .setting-item {
             display: flex;
-            align-items: center;
+            flex-direction: column;
+            align-items: stretch;
             justify-content: space-between;
-            padding: 12px 15px;
-            background: var(--card-background);
-            border-radius: 8px;
-            transition: var(--transition);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            border: 3px solid rgba(244, 67, 54, 0.3);
+            position: relative;
+            overflow: visible;
+        }
+
+        .setting-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: transparent;
+            transition: all 0.3s ease;
+            z-index: 0;
+        }
+
+        .setting-item.active {
+            border-color: #4CAF50;
+            animation: glowGreen 1.5s infinite alternate;
+        }
+
+        .setting-item.inactive {
+            border-color: #F44336;
+            animation: glowRed 1.5s infinite alternate;
+        }
+
+        @keyframes glowGreen {
+            0% { 
+                box-shadow: 0 0 8px rgba(76, 175, 80, 0.5);
+                border-color: #4CAF50;
+            }
+            100% { 
+                box-shadow: 0 0 30px rgba(76, 175, 80, 0.9);
+                border-color: #45a049;
+            }
+        }
+
+        @keyframes glowRed {
+            0% { 
+                box-shadow: 0 0 8px rgba(244, 67, 54, 0.5);
+                border-color: #F44336;
+            }
+            100% { 
+                box-shadow: 0 0 30px rgba(244, 67, 54, 0.9);
+                border-color: #d32f2f;
+            }
         }
 
         .setting-item:hover {
-            background: #f0f4f8;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .setting-item.active:hover {
+            box-shadow: 0 0 35px rgba(76, 175, 80, 0.7);
+        }
+
+        .setting-item.inactive:hover {
+            box-shadow: 0 0 35px rgba(244, 67, 54, 0.7);
         }
 
         .setting-label {
-            font-weight: 500;
-            color: var(--secondary-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .setting-status {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+            margin-left: auto;
+        }
+
+        .setting-status.active {
+            background-color: #4CAF50;
+            box-shadow: 0 0 20px rgba(76, 175, 80, 1);
+            animation: pulseGreen 1.5s infinite;
+        }
+
+        .setting-status.inactive {
+            background-color: #F44336;
+            box-shadow: 0 0 20px rgba(244, 67, 54, 1);
+            animation: pulseRed 1.5s infinite;
+        }
+
+        @keyframes pulseGreen {
+            0% { 
+                box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.8);
+                transform: scale(1);
+            }
+            50% { 
+                box-shadow: 0 0 0 15px rgba(76, 175, 80, 0);
+                transform: scale(1.2);
+            }
+            100% { 
+                box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+                transform: scale(1);
+            }
+        }
+
+        @keyframes pulseRed {
+            0% { 
+                box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.8);
+                transform: scale(1);
+            }
+            50% { 
+                box-shadow: 0 0 0 15px rgba(244, 67, 54, 0);
+                transform: scale(1.2);
+            }
+            100% { 
+                box-shadow: 0 0 0 0 rgba(244, 67, 54, 0);
+                transform: scale(1);
+            }
         }
 
         .setting-control {
             display: flex;
             align-items: center;
+            gap: 10px;
         }
 
         .value-display {
             display: inline-block;
-            min-width: 40px;
+            min-width: 45px;
             font-weight: 600;
             color: var(--primary-color);
             text-align: right;
-            float: right;
+            background: rgba(108, 99, 255, 0.1);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 14px;
+            position: relative;
+            z-index: 1;
         }
 
         input[type="range"] {
-            width: 100%;
-            height: 6px;
-            background: #e0e0e0;
-            border-radius: 3px;
-            outline: none;
             -webkit-appearance: none;
-            margin: 10px 0;
+            width: 100%;
+            height: 8px;
+            background: rgba(108, 99, 255, 0.1);
+            border-radius: 4px;
+            outline: none;
+            margin: 15px 0;
+            cursor: pointer;
+            position: relative;
+            z-index: 1;
         }
 
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            width: 18px;
-            height: 18px;
-            background: var(--primary-color);
+            width: 22px;
+            height: 22px;
+            background: var(--gradient);
             border-radius: 50%;
             cursor: pointer;
             transition: var(--transition);
+            box-shadow: 0 2px 6px rgba(108, 99, 255, 0.3);
+            position: relative;
+            z-index: 2;
         }
 
         input[type="range"]::-webkit-slider-thumb:hover {
             transform: scale(1.2);
+            box-shadow: 0 4px 12px rgba(108, 99, 255, 0.4);
         }
 
         input[type="checkbox"] {
@@ -221,50 +509,154 @@
 
         .character-select {
             display: flex;
-            gap: 15px;
-            margin-top: 15px;
+            gap: 20px;
+            margin-top: 20px;
         }
 
         .character-option {
             flex: 1;
-            padding: 15px;
-            border: 2px solid #e0e0e0;
+            padding: 20px;
+            border: 2px solid rgba(108, 99, 255, 0.2);
             border-radius: var(--border-radius);
             text-align: center;
             cursor: pointer;
             transition: var(--transition);
             background: var(--card-background);
+            position: relative;
+            overflow: hidden;
         }
 
         .character-option:hover {
             border-color: var(--primary-color);
-            transform: translateY(-2px);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(108, 99, 255, 0.15);
         }
 
         .character-option.selected {
             border-color: var(--primary-color);
-            background: #ebf5fb;
-            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.1);
+            background: rgba(108, 99, 255, 0.05);
+            box-shadow: 0 10px 20px rgba(108, 99, 255, 0.1);
         }
 
         .character-option img {
-            width: 64px;
-            height: 64px;
-            margin-bottom: 10px;
+            width: 80px;
+            height: 80px;
+            margin-bottom: 15px;
             transition: var(--transition);
+            filter: drop-shadow(0 4px 8px rgba(108, 99, 255, 0.2));
         }
 
         .character-option:hover img {
-            transform: scale(1.1);
+            transform: scale(1.1) rotate(5deg);
         }
+
+        .about-section {
+            margin-top: 40px;
+            padding: 30px;
+            background: var(--background-color);
+            border-radius: var(--border-radius);
+            text-align: center;
+            animation: fadeIn 0.8s ease-out;
+            border: 1px solid rgba(108, 99, 255, 0.1);
+        }
+
+        .about-section h3 {
+            color: var(--secondary-color);
+            margin-bottom: 20px;
+            font-size: 24px;
+            animation: float 4s ease-in-out infinite;
+        }
+
+        .about-section p {
+            margin: 10px 0;
+            color: var(--text-color);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 25px 0;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .social-link {
+            display: inline-block;
+            padding: 12px 24px;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: var(--transition);
+            cursor: pointer;
+            animation: pulse 2s infinite;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        .social-link:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 20px rgba(108, 99, 255, 0.3);
+        }
+
+        .discord-link {
+            background: linear-gradient(135deg, #7289DA 0%, #5B6EAE 100%);
+        }
+
+        .github-link {
+            background: linear-gradient(135deg, #333 0%, #24292e 100%);
+        }
+
+        .instagram-link {
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+        }
+
+        .project-link {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 24px;
+            color: var(--primary-color);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: var(--transition);
+            background: rgba(108, 99, 255, 0.1);
+            font-weight: 500;
+            animation: pulse 2s infinite;
+        }
+
+        .project-link:hover {
+            background: var(--gradient);
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(108, 99, 255, 0.3);
+        }
+
+        .credits {
+            margin-top: 30px;
+            font-size: 0.9em;
+            color: var(--text-color);
+            animation: fadeIn 0.8s ease-out;
+            opacity: 0.8;
+        }
+
+        .credits p {
+            margin: 8px 0;
+            animation: fadeIn 0.5s ease-out;
+            animation-fill-mode: both;
+        }
+
+        .credits p:nth-child(1) { animation-delay: 0.2s; }
+        .credits p:nth-child(2) { animation-delay: 0.4s; }
+        .credits p:nth-child(3) { animation-delay: 0.6s; }
 
         .footer {
             text-align: center;
-            margin-top: 30px;
+            margin-top: 40px;
             padding-top: 20px;
-            border-top: 1px solid #e0e0e0;
+            border-top: 1px solid rgba(108, 99, 255, 0.1);
             font-size: 14px;
-            color: #666;
+            color: var(--text-color);
+            opacity: 0.8;
+            animation: fadeIn 0.8s ease-out;
         }
 
         @media (max-width: 600px) {
@@ -276,286 +668,229 @@
             .character-select {
                 flex-direction: column;
             }
+
+            .social-links {
+                flex-direction: column;
+            }
+
+            .social-link {
+                width: 100%;
+                text-align: center;
+            }
         }
 
-        /* Toggle Switch Stilleri */
-        .toggle-switch {
-            position: relative;
-            display: inline-block;
-            width: 50px;
-            height: 24px;
-            margin-right: 10px;
-        }
-
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .toggle-slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 24px;
-        }
-
-        .toggle-slider:before {
-            position: absolute;
-            content: "";
-            height: 18px;
-            width: 18px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-
-        input:checked + .toggle-slider {
-            background-color: var(--primary-color);
-        }
-
-        input:checked + .toggle-slider:before {
-            transform: translateX(26px);
-        }
-
-        .shadow-settings {
-            display: none;
-            margin-left: 20px;
-            padding: 10px;
-            background: rgba(0, 0, 0, 0.03);
-            border-radius: 8px;
-            margin-top: 5px;
-        }
-
-        .shadow-settings.active {
-            display: block;
-        }
-
-        /* Yeni buton stilleri */
-        .game-button, .badge-button, .task-button {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 20px;
-            background: var(--primary-color);
-            color: white;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .game-button:hover, .badge-button:hover, .task-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
-        }
-
-        .game-button:active, .badge-button:active, .task-button:active {
-            transform: translateY(0);
-        }
-
-        /* Modal stilleri */
-        .modal {
-            display: none;
+        .settings-button {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--gradient);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(108, 99, 255, 0.3);
+            transition: var(--transition);
             z-index: 1000;
         }
 
-        .modal-content {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            min-width: 300px;
-            max-width: 80%;
-            max-height: 80vh;
-            overflow-y: auto;
+        .settings-button:hover {
+            transform: scale(1.1) rotate(15deg);
+            box-shadow: 0 6px 20px rgba(108, 99, 255, 0.4);
         }
 
-        .close-button {
-            position: absolute;
-            right: 10px;
-            top: 10px;
+        .settings-button::before {
+            content: '⚙️';
             font-size: 24px;
-            cursor: pointer;
-            color: #666;
+            animation: spin 4s linear infinite;
         }
 
-        /* Badge stilleri */
-        .badge-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .settings-button.pulse {
+            animation: buttonPulse 2s infinite;
+        }
+
+        @keyframes buttonPulse {
+            0% { transform: scale(1); box-shadow: 0 4px 15px rgba(108, 99, 255, 0.3); }
+            50% { transform: scale(1.1); box-shadow: 0 6px 25px rgba(108, 99, 255, 0.5); }
+            100% { transform: scale(1); box-shadow: 0 4px 15px rgba(108, 99, 255, 0.3); }
+        }
+
+        /* Tema Sistemi */
+        .theme-system {
+            display: none;
+        }
+
+        /* Tema Seçici Stilleri */
+        .theme-selector {
+            background: var(--card-background);
+            border: 1px solid var(--input-border);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .theme-options {
+            display: flex;
             gap: 15px;
-            padding: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
         }
 
-        .badge-item {
-            text-align: center;
-            padding: 10px;
-            border-radius: 8px;
-            background: #f8f9fa;
-            transition: all 0.3s ease;
-        }
-
-        .badge-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .badge-item img {
-            width: 64px;
-            height: 64px;
-            margin-bottom: 8px;
-        }
-
-        .badge-item.locked {
-            opacity: 0.5;
-        }
-
-        /* Task stilleri */
-        .task-list {
-            padding: 15px;
-        }
-
-        .task-item {
+        .theme-btn {
             display: flex;
             align-items: center;
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .task-item:last-child {
-            border-bottom: none;
-        }
-
-        .task-checkbox {
-            margin-right: 10px;
-        }
-
-        .task-progress {
-            margin-left: auto;
-            font-size: 14px;
-            color: #666;
-        }
-
-        .about-section {
-            margin-top: 30px;
-            padding: 20px;
-            background: var(--background-color);
-            border-radius: var(--border-radius);
-            text-align: center;
-            animation: fadeIn 0.5s ease-out;
-        }
-
-        .about-section h3 {
-            color: var(--secondary-color);
-            margin-bottom: 15px;
-            animation: float 3s ease-in-out infinite;
-        }
-
-        .about-section p {
-            margin: 10px 0;
-            color: var(--text-color);
-        }
-
-        .social-links {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin: 15px 0;
-            animation: fadeIn 0.5s ease-out;
-        }
-
-        .social-link {
-            display: inline-block;
-            padding: 10px 20px;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            transition: var(--transition);
+            gap: 8px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
             cursor: pointer;
-            animation: pulse 2s infinite;
-        }
-
-        .social-link:hover {
-            transform: translateY(-2px) scale(1.1);
-        }
-
-        .discord-link {
-            background: #7289DA;
-        }
-
-        .discord-link:hover {
-            background: #5f73bc;
-        }
-
-        .github-link {
-            background: #333;
-        }
-
-        .github-link:hover {
-            background: #24292e;
-        }
-
-        .instagram-link {
-            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
-        }
-
-        .instagram-link:hover {
-            opacity: 0.9;
-        }
-
-        .credits {
-            margin-top: 20px;
-            font-size: 0.9em;
-            color: #666;
-            animation: fadeIn 0.5s ease-out;
-        }
-
-        .credits p {
-            animation: fadeIn 0.5s ease-out;
-            animation-fill-mode: both;
-        }
-
-        .credits p:nth-child(1) { animation-delay: 0.1s; }
-        .credits p:nth-child(2) { animation-delay: 0.2s; }
-        .credits p:nth-child(3) { animation-delay: 0.3s; }
-
-        .project-link {
-            display: inline-block;
-            margin-top: 15px;
-            padding: 8px 16px;
-            color: var(--primary-color);
-            text-decoration: none;
-            border-radius: 5px;
             transition: var(--transition);
-            animation: pulse 2s infinite;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+            background: var(--theme-button-bg);
+            color: var(--theme-button-text);
         }
 
-        .project-link:hover {
-            background: var(--primary-color);
-            color: white;
+        .theme-btn:hover {
+            background: var(--theme-button-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 0 25px var(--input-focus);
+        }
+
+        .theme-btn.active {
+            transform: scale(1.1);
+            border: 2px solid var(--theme-button-active-border, #FFD700);
+            box-shadow: 0 0 16px 2px var(--theme-button-active-shadow, #FFD700);
+            background: var(--theme-button-bg);
+            color: var(--theme-button-text);
+        }
+
+        .theme-btn i {
+            font-size: 1.2rem;
+        }
+
+        /* Tema Geçiş Animasyonu */
+        body, .container, .setting-group, .setting-item, input, button, select, textarea {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        /* Input ve Form Elemanları için Tema Stilleri */
+        input[type="text"],
+        input[type="number"],
+        input[type="email"],
+        input[type="password"],
+        select,
+        textarea {
+            background-color: var(--input-background);
+            color: var(--input-text);
+            border: 1px solid var(--input-border);
+            border-radius: var(--border-radius);
+            padding: 8px 12px;
+            transition: var(--transition);
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        input[type="email"]:focus,
+        input[type="password"]:focus,
+        select:focus,
+        textarea:focus {
+            border-color: var(--input-focus);
+            box-shadow: 0 0 0 2px var(--input-focus);
+            outline: none;
+        }
+
+        /* Butonlar için Tema Stilleri */
+        button {
+            background-color: var(--button-background);
+            color: var(--button-text);
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        button:hover {
+            background-color: var(--button-hover);
             transform: translateY(-2px);
+        }
+
+        /* Setting Item Tema Stilleri */
+        .setting-item {
+            background-color: var(--card-background);
+            color: var(--text-color);
+            border: 1px solid var(--input-border);
+        }
+
+        .setting-item:hover {
+            border-color: var(--input-focus);
+        }
+
+        /* Value Display Tema Stilleri */
+        .value-display {
+            background-color: var(--input-background);
+            color: var(--input-text);
+            border: 1px solid var(--input-border);
+        }
+
+        /* Range Input Tema Stilleri */
+        input[type="range"] {
+            background: var(--input-background);
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            background: var(--button-background);
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: var(--button-hover);
+        }
+
+        /* Tema Butonları için Ek Stiller */
+        .pink-theme:hover {
+            background: linear-gradient(45deg, #FF1493, #FF69B4);
+            box-shadow: 0 0 25px rgba(255, 105, 180, 0.7);
+        }
+
+        .theme-btn.active {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(255, 105, 180, 0.8);
         }
     </style>
 </head>
 <body>
+    <button class="settings-button" id="settingsButton" title="Ayarları Aç"></button>
     <div class="container">
         <h2>Karakter Ayarları</h2>
         
+        <!-- Tema Sistemi -->
+        <div class="theme-system">
+            <!-- Varsayılan tema -->
+            <div data-theme="light" data-theme-name="Açık" data-theme-icon="sun"></div>
+            
+            <!-- Koyu tema -->
+            <div data-theme="dark" data-theme-name="Koyu" data-theme-icon="moon"></div>
+            
+            <!-- Pembe tema -->
+            <div data-theme="pink" data-theme-name="Pembe" data-theme-icon="heart"></div>
+
+            <!-- Yeşil tema -->
+            <div data-theme="green" data-theme-name="Yeşil" data-theme-icon="leaf"></div>
+        </div>
+
         <div class="setting-group">
             <h3>Karakter Seçimi</h3>
             <div class="character-select">
@@ -569,67 +904,330 @@
         <div class="setting-group">
             <h3>Hareket Ayarları</h3>
             <div class="setting-item">
-                <label for="speedRange">Karakter Hızı: <span id="speedValue" class="value-display">10</span></label>
-                <input type="range" id="speedRange" min="1" max="50" value="25" />
+                <div class="setting-label">
+                    Hız
+                    <span class="value-display" id="speedValue">10</span>
+                </div>
+                <input type="range" id="speedRange" min="1" max="100" value="10" step="1">
             </div>
             <div class="setting-item">
-                <label for="sizeRange">Karakter Boyutu: <span id="sizeValue" class="value-display">100%</span></label>
-                <input type="range" id="sizeRange" min="1" max="300" value="300" />
+                <div class="setting-label">
+                    Boyut
+                    <span class="value-display" id="sizeValue">100%</span>
+                </div>
+                <input type="range" id="sizeRange" min="50" max="200" value="100" step="1">
             </div>
         </div>
 
         <div class="setting-group">
             <h3>Görünüm Ayarları</h3>
-            <div class="setting-item">
-                <span class="setting-label">Her Zaman Üstte</span>
-                <div class="setting-control">
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="alwaysOnTop" checked />
-                        <span class="toggle-slider"></span>
-                    </label>
+            <div class="setting-item" id="alwaysOnTopItem">
+                <div class="setting-label">
+                    Her Zaman Üstte
                 </div>
-
+                <span class="setting-status"></span>
+                <input type="checkbox" id="alwaysOnTop" style="display: none;">
+            </div>
+            <div class="setting-item theme-selector">
+                <div class="setting-label">
+                    Tema Seçimi
+                </div>
+                <div class="theme-options" id="themeOptions">
+                    <!-- Temalar JavaScript ile otomatik eklenecek -->
+                </div>
             </div>
         </div>
 
         <div class="setting-group">
             <h3>Başlangıç Ayarları</h3>
-            <div class="setting-item">
-                <span class="setting-label">Windows Başlangıcında Çalıştır</span>
-                <div class="setting-control">
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="autoLaunch" />
-                        <span class="toggle-slider"></span>
-                    </label>
+            <div class="setting-item" id="autoLaunchItem">
+                <div class="setting-label">
+                    Windows Başlangıcında Çalıştır
                 </div>
+                <span class="setting-status"></span>
+                <input type="checkbox" id="autoLaunch" style="display: none;">
             </div>
-            <div class="setting-item">
-                <span class="setting-label">Kapatınca Sistem Tepsisine Küçült</span>
-                <div class="setting-control">
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="minimizeToTray" checked />
-                        <span class="toggle-slider"></span>
-                    </label>
+            <div class="setting-item" id="minimizeToTrayItem">
+                <div class="setting-label">
+                    Kapatınca Simge Durumuna Küçült
                 </div>
+                <span class="setting-status"></span>
+                <input type="checkbox" id="minimizeToTray" style="display: none;">
             </div>
         </div>
 
-        <div class="about-section">
-            <h3>Hakkında</h3>
-            <p>Oneko Kedi v1.0.3</p>
-            <p>Yapımcı: Blackeker</p>
-            <div class="social-links">
-                <button onclick="openDiscord()" class="social-link discord-link">Discord</button>
-                <button onclick="openGithub()" class="social-link github-link">GitHub</button>
-                <button onclick="openInstagram()" class="social-link instagram-link">Instagram</button>
+        <div class="setting-group">
+            <h3>Diğer Ayarlar</h3>
+            <h5>Bu ayarlar henüz yapım aşamasında</h5>
+        </div>
+
+        <!-- Google Fonts -->
+        <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Inter:wght@400;700&display=swap" rel="stylesheet" />
+        
+        <!-- FontAwesome CDN -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+        <div class="about-section-glow">
+            <h3>🔥 Oneko Kedi v1.0.3 🔥 <span class="version-date">(Son Güncelleme: 08 Haziran 2025)</span></h3>
+            <p>Yapımcı: <strong>Blackeker</strong> — <span class="highlight">Kodun ve sevginin ustası</span></p>
+
+            <div class="social-links-glow" role="list" aria-label="Sosyal Medya Bağlantıları">
+                <button onclick="openDiscord()" class="social-link discord-link" aria-label="Discord Sunucumuz">
+                    <i class="fab fa-discord"></i> Discord
+                </button>
+                <button onclick="openGithub()" class="social-link github-link" aria-label="GitHub Depomuz">
+                    <i class="fab fa-github"></i> GitHub
+                </button>
+                <button onclick="openInstagram()" class="social-link instagram-link" aria-label="Instagram Hesabımız">
+                    <i class="fab fa-instagram"></i> Instagram
+                </button>
             </div>
-            <a href="#" onclick="openProject()" class="project-link">Projeyi GitHub'da Görüntüle</a>
-            <div class="credits">
-                <p>Bu uygulama açık kaynaklıdır ve topluluk katkılarıyla geliştirilmektedir.</p>
+
+            <a href="#" onclick="openProject()" class="project-link-glow" target="_blank" rel="noopener noreferrer" title="Projeyi GitHub'da Görüntüle">
+                Projeyi GitHub'da Görüntüle <i class="fas fa-external-link-alt"></i>
+            </a>
+
+            <button class="contribute-btn-glow" onclick="openGithub()" aria-label="Projeye Katıl">
+                🚀 <span class="shine-effect">Projeye Katıl ve Parla!</span>
+            </button>
+
+            <div class="credits-glow">
+                <p>Bu uygulama <strong>açık kaynaklı</strong>dır ve topluluk katkılarıyla <span class="highlight">IŞILDIYOR!</span></p>
+                <p>Katkıda bulunmak istersen <a href="#" onclick="openGithub()">GitHub</a>'a bekleriz!</p>
                 <p>Teşekkürler:</p>
-                <p>- Henüz kimse yok burda :(</p>
+                <ul>
+                    <li><strong>Blackeker</strong> (Yapımcı & Tasarımcı)</li>
+                    <li><strong>Sen ve gelecekteki diğer yıldızlar!</strong></li>
+                </ul>
             </div>
         </div>
+
+        <style>
+            /* FONT & Genel Ayarlar */
+            .about-section-glow {
+                font-family: 'Inter', sans-serif;
+                background: var(--about-bg);
+                border-radius: 20px;
+                padding: 35px 40px;
+                max-width: 480px;
+                margin: 40px auto;
+                box-shadow: var(--about-shadow);
+                color: var(--about-text);
+                text-align: center;
+                position: relative;
+                overflow: hidden;
+                transition: transform 0.4s ease, background 0.3s, color 0.3s;
+            }
+            .about-section-glow:hover {
+                transform: scale(1.05);
+                box-shadow: 0 0 40px var(--about-title-glow), 0 0 80px var(--about-title), 0 0 120px var(--about-highlight);
+            }
+
+            .about-section-glow h3 {
+                font-family: 'Orbitron', sans-serif;
+                font-weight: 700;
+                font-size: 2.2rem;
+                letter-spacing: 3px;
+                margin-bottom: 16px;
+                color: var(--about-title);
+                text-shadow:
+                    0 0 10px var(--about-title-glow),
+                    0 0 20px var(--about-title-glow),
+                    0 0 30px var(--about-title),
+                    0 0 40px var(--about-highlight);
+            }
+            .version-date {
+                font-size: 0.9rem;
+                font-weight: 500;
+                color: var(--about-title-glow);
+            }
+            .about-section-glow p {
+                font-size: 1.1rem;
+                margin: 6px 0;
+                color: var(--about-text);
+            }
+            .highlight {
+                color: var(--about-highlight);
+                font-weight: 700;
+                text-shadow:
+                    0 0 6px var(--about-highlight),
+                    0 0 10px var(--about-title-glow),
+                    0 0 12px var(--about-highlight);
+            }
+
+            /* Sosyal Butonlar */
+            .social-links-glow {
+                margin: 25px 0;
+                display: flex;
+                justify-content: center;
+                gap: 20px;
+            }
+            .social-link {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                background-color: var(--about-btn-bg);
+                border-radius: 12px;
+                padding: 14px 28px;
+                font-weight: 700;
+                font-size: 1.1rem;
+                color: var(--about-btn-text);
+                cursor: pointer;
+                box-shadow: 0 0 8px var(--about-btn-glow);
+                border: 2px solid transparent;
+                transition: all 0.3s ease;
+                text-transform: uppercase;
+                letter-spacing: 1.5px;
+            }
+            .social-link i {
+                font-size: 24px;
+                filter: drop-shadow(0 0 3px var(--about-btn-glow));
+            }
+            .social-link:hover {
+                color: var(--about-btn-text);
+                box-shadow: 0 0 25px var(--about-btn-glow), 0 0 35px var(--about-title-glow);
+                background-color: var(--about-btn-bg);
+                border-color: var(--about-btn-glow);
+            }
+            .discord-link:hover {
+                box-shadow:
+                    0 0 20px #7289da,
+                    0 0 35px #5865f2,
+                    0 0 50px #7289da;
+            }
+            .github-link:hover {
+                box-shadow:
+                    0 0 20px #333,
+                    0 0 35px #555,
+                    0 0 50px #222;
+            }
+            .instagram-link:hover {
+                background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%);
+                color: white;
+                box-shadow:
+                    0 0 15px #fd5949,
+                    0 0 30px #d6249f,
+                    0 0 45px #285AEB;
+            }
+
+            /* Proje Linki */
+            .project-link-glow {
+                display: inline-block;
+                margin: 20px auto 10px;
+                font-weight: 800;
+                font-size: 1.3rem;
+                color: var(--about-link);
+                text-decoration: none;
+                border-bottom: 3px solid transparent;
+                transition: border-color 0.3s ease, color 0.3s ease;
+                letter-spacing: 1.8px;
+            }
+            .project-link-glow i {
+                margin-left: 8px;
+                font-size: 1rem;
+                vertical-align: middle;
+            }
+            .project-link-glow:hover {
+                border-color: var(--about-link-hover);
+                color: var(--about-link-hover);
+            }
+
+            /* Katılım Butonu */
+            .contribute-btn-glow {
+                margin: 15px auto;
+                display: block;
+                width: 280px;
+                padding: 16px 0;
+                font-size: 1.2rem;
+                font-weight: 900;
+                color: var(--about-btn-text);
+                background: var(--about-btn-bg);
+                border: none;
+                border-radius: 50px;
+                cursor: pointer;
+                box-shadow: 0 0 10px var(--about-btn-glow), 0 0 20px var(--about-btn-glow), 0 0 30px var(--about-btn-glow);
+                animation: shine 3s ease-in-out infinite;
+                transition: transform 0.3s ease;
+                letter-spacing: 2px;
+                text-transform: uppercase;
+                position: relative;
+                overflow: hidden;
+            }
+            .contribute-btn-glow:hover {
+                transform: scale(1.1);
+                box-shadow: 0 0 25px var(--about-btn-glow), 0 0 40px var(--about-title-glow);
+            }
+
+            .shine-effect {
+                position: relative;
+                display: inline-block;
+                color: #111;
+                animation: flicker 2.5s infinite;
+            }
+
+            @keyframes shine {
+                0%{background-position:0% 50%;}
+                50%{background-position:100% 50%;}
+                100%{background-position:0% 50%;}
+            }
+            @keyframes flicker {
+                0%, 100% {opacity: 1;}
+                50% {opacity: 0.7;}
+            }
+
+            /* Credits */
+            .credits-glow {
+                margin-top: 30px;
+                font-size: 1rem;
+                color: var(--about-text);
+                text-align: left;
+                max-width: 400px;
+                margin-left: auto;
+                margin-right: auto;
+                line-height: 1.6;
+            }
+            .credits-glow ul {
+                list-style: disc;
+                padding-left: 25px;
+                margin-top: 10px;
+            }
+            .credits-glow li {
+                margin-bottom: 6px;
+                font-weight: 600;
+                text-shadow: 0 0 3px var(--about-title-glow);
+            }
+            .credits-glow a {
+                color: var(--about-link);
+                font-weight: 700;
+                text-decoration: none;
+                transition: text-shadow 0.3s ease, color 0.3s;
+            }
+            .credits-glow a:hover {
+                text-shadow: 0 0 8px var(--about-link-hover), 0 0 12px var(--about-link-hover);
+                color: var(--about-link-hover);
+                text-decoration: underline;
+            }
+
+            /* Responsive */
+            @media (max-width: 520px) {
+                .about-section-glow {
+                    padding: 30px 20px;
+                    max-width: 90vw;
+                }
+                .social-links-glow {
+                    flex-direction: column;
+                    gap: 15px;
+                }
+                .social-link {
+                    justify-content: center;
+                    padding: 14px 25px;
+                    font-size: 1.1rem;
+                }
+                .contribute-btn-glow {
+                    width: 100%;
+                }
+            }
+        </style>
 
         <div class="footer">
             Oneko v1.0.3
@@ -639,152 +1237,247 @@
     <script>
         const { ipcRenderer } = require('electron');
 
-        // Mevcut ayarları al
-        ipcRenderer.send('get-current-speed');
-        ipcRenderer.send('get-current-size');
-        ipcRenderer.send('get-always-on-top');
-        ipcRenderer.send('get-current-character');
-        ipcRenderer.send('get-idle-time');
-        ipcRenderer.send('get-opacity');
-        ipcRenderer.send('get-follow-mouse');
-        ipcRenderer.send('get-sound-effects');
-        ipcRenderer.send('get-emotions');
-        ipcRenderer.send('get-trail');
-        ipcRenderer.send('get-minimize-to-tray');
-        ipcRenderer.send('get-auto-launch');
+        // Ayar durumunu güncelle
+        function updateSettingStatus(item, isActive) {
+            console.log('Updating status for item:', item.id, 'to active:', isActive);
+            const statusDot = item.querySelector('.setting-status');
+            if (isActive) {
+                item.classList.remove('inactive');
+                item.classList.add('active');
+                if (statusDot) {
+                    statusDot.classList.remove('inactive');
+                    statusDot.classList.add('active');
+                }
+            } else {
+                item.classList.remove('active');
+                item.classList.add('inactive');
+                if (statusDot) {
+                    statusDot.classList.remove('active');
+                    statusDot.classList.add('inactive');
+                }
+            }
+        }
 
-        // Hız ayarı
-        const speedSlider = document.getElementById('speedRange');
-        ipcRenderer.on('current-speed', (event, speed) => {
-            speedSlider.value = speed;
-            document.getElementById('speedValue').textContent = speed;
-        });
-        speedSlider.addEventListener('input', (e) => {
-            const speed = parseInt(e.target.value);
-            document.getElementById('speedValue').textContent = speed;
-            ipcRenderer.send('set-speed', speed);
-        });
-
-        // Boyut ayarı
-        const sizeSlider = document.getElementById('sizeRange');
-        ipcRenderer.on('current-size', (event, size) => {
-            sizeSlider.value = size;
-            document.getElementById('sizeValue').textContent = size;
-        });
-        sizeSlider.addEventListener('input', (e) => {
-            const size = parseInt(e.target.value);
-            document.getElementById('sizeValue').textContent = size;
-            ipcRenderer.send('set-size', size);
-        });
-
-        // Her zaman üstte
-        const alwaysOnTopCheckbox = document.getElementById('alwaysOnTop');
-        ipcRenderer.on('always-on-top-status', (event, enabled) => {
-            alwaysOnTopCheckbox.checked = enabled;
-        });
-        alwaysOnTopCheckbox.addEventListener('change', (e) => {
-            ipcRenderer.send('set-always-on-top', e.target.checked);
-        });
-
-        // Karakter seçimi
-        const characterOptions = document.querySelectorAll('.character-option');
-        ipcRenderer.on('current-character', (event, character) => {
-            characterOptions.forEach(option => {
-                option.classList.toggle('selected', option.dataset.character === character);
-            });
-        });
-        characterOptions.forEach(option => {
-            option.addEventListener('click', () => {
-                ipcRenderer.send('set-character', option.dataset.character);
-            });
-        });
-
-        // Bekleme süresi
-        const idleTimeSlider = document.getElementById('idleTimeRange');
-        ipcRenderer.on('idle-time-status', (event, time) => {
-            idleTimeSlider.value = time;
-            document.getElementById('idleTimeValue').textContent = time;
-        });
-        idleTimeSlider.addEventListener('input', (e) => {
-            const time = parseInt(e.target.value);
-            document.getElementById('idleTimeValue').textContent = time;
-            ipcRenderer.send('set-idle-time', time);
-        });
-
-        // Opaklık
-        const opacitySlider = document.getElementById('opacity');
-        ipcRenderer.on('opacity-status', (event, opacity) => {
-            opacitySlider.value = opacity;
-            document.getElementById('opacity-value').textContent = opacity;
-        });
-        opacitySlider.addEventListener('input', (e) => {
-            const opacity = parseInt(e.target.value);
-            document.getElementById('opacity-value').textContent = opacity;
-            ipcRenderer.send('set-opacity', opacity);
-        });
-
-        // Fare takibi
-        const followMouseCheckbox = document.getElementById('followMouse');
-        ipcRenderer.on('follow-mouse-status', (event, enabled) => {
-            followMouseCheckbox.checked = enabled;
-        });
-        followMouseCheckbox.addEventListener('change', (e) => {
-            ipcRenderer.send('set-follow-mouse', e.target.checked);
-        });
-
-        // Ses efektleri
-        const soundEffectsCheckbox = document.getElementById('playSounds');
-        ipcRenderer.on('sound-effects-status', (event, enabled) => {
-            soundEffectsCheckbox.checked = enabled;
-        });
-        soundEffectsCheckbox.addEventListener('change', (e) => {
-            ipcRenderer.send('set-sound-effects', e.target.checked);
-        });
-
-        // Duygu ifadeleri
-        const emotionsCheckbox = document.getElementById('showEmotions');
-        ipcRenderer.on('emotions-status', (event, enabled) => {
-            emotionsCheckbox.checked = enabled;
-        });
-        emotionsCheckbox.addEventListener('change', (e) => {
-            ipcRenderer.send('set-emotions', e.target.checked);
-        });
-
-        // Hareket izi
-        const trailCheckbox = document.getElementById('showTrail');
-        ipcRenderer.on('trail-status', (event, enabled) => {
-            trailCheckbox.checked = enabled;
-        });
-        trailCheckbox.addEventListener('change', (e) => {
-            ipcRenderer.send('set-trail', e.target.checked);
-        });
-
-        // Simgeye küçült
-        const minimizeToTrayCheckbox = document.getElementById('minimizeToTray');
-        ipcRenderer.on('minimize-to-tray-status', (event, enabled) => {
-            minimizeToTrayCheckbox.checked = enabled;
-        });
-        minimizeToTrayCheckbox.addEventListener('change', (e) => {
-            ipcRenderer.send('set-minimize-to-tray', e.target.checked);
-        });
-
-        // Otomatik başlat
-        const autoLaunchCheckbox = document.getElementById('autoLaunch');
-        ipcRenderer.on('auto-launch-status', (event, enabled) => {
-            autoLaunchCheckbox.checked = enabled;
-        });
-        autoLaunchCheckbox.addEventListener('change', (e) => {
-            ipcRenderer.send('set-auto-launch', e.target.checked);
-        });
-
-        // Sayfa yüklendiğinde mevcut ayarları al
+        // Sayfa yüklendiğinde mevcut ayarları yükle ve olay dinleyicilerini ayarla
         document.addEventListener('DOMContentLoaded', () => {
-            // Tüm checkbox'ları kontrol et
-            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-            checkboxes.forEach(checkbox => {
-                const eventName = checkbox.id + '-status';
-                ipcRenderer.send('get-' + eventName);
+            console.log('DOM Content Loaded in settings.html');
+
+            // Tüm ayar öğelerine tıklama olayı ekle
+            document.querySelectorAll('.setting-item').forEach(item => {
+                const checkbox = item.querySelector('input[type="checkbox"]');
+                if (checkbox) {
+                    // Sadece checkbox içeren .setting-item'lar için tıklama eventi
+                    item.addEventListener('click', function() {
+                        console.log('Setting item clicked:', this.id); // Tıklanan öğenin ID'si
+                        checkbox.checked = !checkbox.checked;
+                        console.log('Checkbox checked status after click:', checkbox.checked); // Checkbox durumu
+                        updateSettingStatus(this, checkbox.checked);
+                        
+                        const settingId = checkbox.id;
+                        console.log(`Sending IPC: set-${settingId}, value: ${checkbox.checked}`); // IPC gönderme logu
+                        ipcRenderer.send(`set-${settingId}`, checkbox.checked);
+                    });
+                }
             });
+
+            // Hız ayarı
+            const speedSlider = document.getElementById('speedRange');
+            const speedValueDisplay = document.getElementById('speedValue');
+            if (speedSlider && speedValueDisplay) {
+                console.log('Speed slider initialized');
+                
+                // Başlangıç değerini ayarla
+                speedSlider.value = speedSlider.value;
+                speedValueDisplay.textContent = speedSlider.value;
+                
+                // IPC ile mevcut değeri al
+                ipcRenderer.send('get-current-speed');
+                
+                // IPC yanıtını dinle
+                ipcRenderer.on('current-speed', (event, speed) => {
+                    console.log('Received speed value:', speed);
+                    speedSlider.value = speed;
+                    speedValueDisplay.textContent = speed;
+                });
+
+                // Slider değişikliğini dinle
+                speedSlider.addEventListener('input', (e) => {
+                    const speed = parseInt(e.target.value);
+                    console.log('Speed changed to:', speed);
+                    speedValueDisplay.textContent = speed;
+                    ipcRenderer.send('set-speed', speed);
+                });
+            }
+
+            // Boyut ayarı
+            const sizeSlider = document.getElementById('sizeRange');
+            const sizeValueDisplay = document.getElementById('sizeValue');
+            if (sizeSlider && sizeValueDisplay) {
+                console.log('Size slider initialized');
+                
+                // Başlangıç değerini ayarla
+                sizeSlider.value = sizeSlider.value;
+                sizeValueDisplay.textContent = sizeSlider.value + '%';
+                
+                // IPC ile mevcut değeri al
+                ipcRenderer.send('get-current-size');
+                
+                // IPC yanıtını dinle
+                ipcRenderer.on('current-size', (event, size) => {
+                    console.log('Received size value:', size);
+                    sizeSlider.value = size;
+                    sizeValueDisplay.textContent = size + '%';
+                });
+
+                // Slider değişikliğini dinle
+                sizeSlider.addEventListener('input', (e) => {
+                    const size = parseInt(e.target.value);
+                    console.log('Size changed to:', size);
+                    sizeValueDisplay.textContent = size + '%';
+                    ipcRenderer.send('set-size', size);
+                });
+            }
+
+            // Opaklık ayarı
+            const opacitySlider = document.getElementById('opacity');
+            const opacityValue = document.getElementById('opacity-value');
+            if (opacitySlider && opacityValue) {
+                console.log('Opacity slider initialized');
+                ipcRenderer.send('get-opacity');
+                
+                ipcRenderer.on('opacity-status', (event, opacity) => {
+                    console.log('Received opacity value:', opacity);
+                    opacitySlider.value = opacity;
+                    opacityValue.textContent = opacity;
+                });
+
+                opacitySlider.addEventListener('input', (e) => {
+                    const opacity = parseInt(e.target.value);
+                    console.log('Opacity changed to:', opacity);
+                    opacityValue.textContent = opacity;
+                    ipcRenderer.send('set-opacity', opacity);
+                });
+            }
+
+            // Bekleme süresi ayarı
+            const idleTimeSlider = document.getElementById('idleTimeRange');
+            const idleTimeValue = document.getElementById('idleTimeValue');
+            if (idleTimeSlider && idleTimeValue) {
+                console.log('Idle time slider initialized');
+                ipcRenderer.send('get-idle-time');
+                
+                ipcRenderer.on('idle-time-status', (event, time) => {
+                    console.log('Received idle time value:', time);
+                    idleTimeSlider.value = time;
+                    idleTimeValue.textContent = time;
+                });
+
+                idleTimeSlider.addEventListener('input', (e) => {
+                    const time = parseInt(e.target.value);
+                    console.log('Idle time changed to:', time);
+                    idleTimeValue.textContent = time;
+                    ipcRenderer.send('set-idle-time', time);
+                });
+            }
+
+            // Checkbox ayarları için başlangıç durumlarını al ve dinleyicileri ayarla
+            document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                const settingId = checkbox.id;
+                const parentItem = checkbox.closest('.setting-item');
+                console.log(`Checkbox element ${settingId}:`, checkbox); // Her checkbox elementini logla
+                console.log(`Parent item for ${settingId}:`, parentItem); // Her checkbox'ın parent elementini logla
+                if (parentItem) {
+                    // Initial status request
+                    ipcRenderer.send(`get-${settingId}`);
+                    
+                    // Listen for status updates
+                    ipcRenderer.on(`${settingId}-status`, (event, status) => {
+                        console.log(`Received status for ${settingId}: ${status}`);
+                        checkbox.checked = status;
+                        updateSettingStatus(parentItem, status);
+                    });
+                }
+            });
+            
+            // Karakter seçimi (Existing logic, just ensured it's within DOMContentLoaded)
+            const characterOptions = document.querySelectorAll('.character-option');
+            console.log('Character Options elements:', characterOptions); // Karakter seçeneklerini logla
+            ipcRenderer.send('get-current-character'); // Initial request
+            ipcRenderer.on('current-character', (event, character) => {
+                characterOptions.forEach(option => {
+                    option.classList.toggle('selected', option.dataset.character === character);
+                });
+            });
+            characterOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    ipcRenderer.send('set-character', option.dataset.character);
+                });
+            });
+
+            // Geri kalan slider ve checkboxların IPC ve Event Listenerslerini ekleyebiliriz.
+            // Örneğin:
+
+            // Fare takibi
+            const followMouseCheckbox = document.getElementById('followMouse');
+            const followMouseItem = document.getElementById('followMouseItem'); 
+            console.log('Follow Mouse Checkbox element:', followMouseCheckbox); // followMouseCheckbox elementini logla
+            if (followMouseCheckbox && followMouseItem) {
+                ipcRenderer.send('get-follow-mouse');
+                ipcRenderer.on('follow-mouse-status', (event, enabled) => {
+                    followMouseCheckbox.checked = enabled;
+                    updateSettingStatus(followMouseItem, enabled);
+                });
+            }
+
+            // Ses efektleri
+            const soundEffectsCheckbox = document.getElementById('playSounds');
+            const soundEffectsItem = document.getElementById('playSoundsItem'); 
+            console.log('Sound Effects Checkbox element:', soundEffectsCheckbox); // soundEffectsCheckbox elementini logla
+            if (soundEffectsCheckbox && soundEffectsItem) {
+                ipcRenderer.send('get-sound-effects');
+                ipcRenderer.on('sound-effects-status', (event, enabled) => {
+                    soundEffectsCheckbox.checked = enabled;
+                    updateSettingStatus(soundEffectsItem, enabled);
+                });
+            }
+
+            // Duygu ifadeleri
+            const emotionsCheckbox = document.getElementById('showEmotions');
+            const emotionsItem = document.getElementById('showEmotionsItem'); 
+            console.log('Emotions Checkbox element:', emotionsCheckbox); // emotionsCheckbox elementini logla
+            if (emotionsCheckbox && emotionsItem) {
+                ipcRenderer.send('get-emotions');
+                ipcRenderer.on('emotions-status', (event, enabled) => {
+                    emotionsCheckbox.checked = enabled;
+                    updateSettingStatus(emotionsItem, enabled);
+                });
+            }
+
+            // Hareket izi
+            const trailCheckbox = document.getElementById('showTrail');
+            const trailItem = document.getElementById('showTrailItem'); 
+            console.log('Trail Checkbox element:', trailCheckbox); // trailCheckbox elementini logla
+            if (trailCheckbox && trailItem) {
+                ipcRenderer.send('get-trail-status'); 
+                ipcRenderer.on('trail-status', (event, enabled) => {
+                    trailCheckbox.checked = enabled;
+                    updateSettingStatus(trailItem, enabled);
+                });
+            }
+
+            // Ayarlar butonuna tıklama olayı
+            document.getElementById('settingsButton').addEventListener('click', () => {
+                ipcRenderer.send('open-settings');
+            });
+
+            // Sayfa yüklendiğinde butonu göster
+            const settingsButton = document.getElementById('settingsButton');
+            if (settingsButton) {
+                settingsButton.classList.add('pulse');
+                setTimeout(() => {
+                    settingsButton.classList.remove('pulse');
+                }, 3000);
+            }
         });
 
         function openDiscord() {
@@ -802,6 +1495,67 @@
         function openProject() {
             require('electron').shell.openExternal('https://github.com/blackeker/oneko');
         }
+
+        // Tema sistemi için JavaScript
+        function initializeThemeSystem() {
+            const themeSystem = document.querySelector('.theme-system');
+            const themeOptions = document.getElementById('themeOptions');
+            
+            // Tema sisteminden tüm temaları al
+            const themes = Array.from(themeSystem.querySelectorAll('[data-theme]')).map(theme => ({
+                name: theme.getAttribute('data-theme'),
+                displayName: theme.getAttribute('data-theme-name') || theme.getAttribute('data-theme'),
+                icon: theme.getAttribute('data-theme-icon') || 'palette'
+            }));
+
+            // Her tema için buton oluştur
+            themes.forEach(theme => {
+                const button = document.createElement('button');
+                button.className = 'theme-btn';
+                button.setAttribute('onclick', `changeTheme('${theme.name}')`);
+                button.setAttribute('title', `${theme.displayName} Tema`);
+                
+                const icon = document.createElement('i');
+                icon.className = `fas fa-${theme.icon}`;
+                
+                const span = document.createElement('span');
+                span.textContent = theme.displayName;
+                
+                button.appendChild(icon);
+                button.appendChild(span);
+                themeOptions.appendChild(button);
+            });
+
+            // Kaydedilmiş temayı uygula
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            changeTheme(savedTheme);
+        }
+
+        // Tema değiştirme fonksiyonu
+        function changeTheme(theme) {
+            console.log('Changing theme to:', theme); // Debug için log
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            
+            // Tema butonlarının aktif durumunu güncelle
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.getAttribute('onclick').includes(theme)) {
+                    btn.classList.add('active');
+                }
+            });
+
+            // Tema değişikliğini ana pencereye bildir
+            if (window.ipcRenderer) {
+                window.ipcRenderer.send('theme-changed', theme);
+            }
+        }
+
+        // Sayfa yüklendiğinde tema sistemini başlat
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Initializing theme system...'); // Debug için log
+            initializeThemeSystem();
+        });
     </script>
 </body>
 </html> 
