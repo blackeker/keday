@@ -67,7 +67,8 @@
   // Pencere kapatıldığında kaynakları temizle
   window.addEventListener('beforeunload', cleanup);
   
-  const sprite = loadSprite('assets/oneko.gif');
+  let currentCharacter = 'oneko'; // Varsayılan karakter
+  let sprite = loadSprite(`assets/${currentCharacter}.gif`);
   console.log('Sprite yükleniyor...');
   
   // Sprite yükleme işlemi
@@ -93,8 +94,36 @@
   };
   
   // Sprite'ı yükle
-  sprite.src = 'assets/oneko.gif';
+  sprite.src = `assets/${currentCharacter}.gif`;
   console.log('Sprite yükleme isteği gönderildi');
+
+  // Karakter değişimi için IPC dinleyicisi
+  ipcRenderer.on('set-character', (event, character) => {
+    console.log('Karakter değiştiriliyor:', character);
+    currentCharacter = character;
+    
+    // Önceki sprite'ı temizle
+    spriteCache.clear();
+    
+    // Yeni sprite'ı yükle
+    sprite = loadSprite(`assets/${character}.gif`);
+    sprite.onload = function() {
+      console.log('Yeni karakter yüklendi:', character);
+      console.log('Sprite boyutları:', sprite.width, 'x', sprite.height);
+    };
+    sprite.onerror = function(error) {
+      console.error('Yeni karakter yükleme hatası:', error);
+      console.log('Alternatif sprite deneniyor...');
+      sprite.src = 'assets/icon.png';
+    };
+    sprite.src = `assets/${character}.gif`;
+  });
+
+  // Mevcut karakteri gönder
+  ipcRenderer.on('get-current-character', () => {
+    console.log('Mevcut karakter gönderiliyor:', currentCharacter);
+    ipcRenderer.send('current-character', currentCharacter);
+  });
 
   const spriteSets = {
     idle: [[3, 3]],
@@ -115,7 +144,14 @@
     W: [[4, 2], [4, 3]],
     NW: [[1, 0], [1, 1]]
   };
-
+  let lastMoveTime = Date.now();
+  let isSleeping = false;
+  let isTired = false;
+  let lastStateChange = Date.now();
+  let isScratching = false;
+  let lastScratchTime = Date.now();
+  let sleepStartTime = Date.now(); // Uyku başlangıç zamanı
+  const MIN_SLEEP_DURATION = 5000; // Minimum uyku süresi (5 saniye)
   let nekoPosX = 32;
   let nekoPosY = 32;
   let mousePosX = 0;
@@ -127,6 +163,10 @@
   let lastFrameTime = 0;
   const frameDelay = 100;
   let followMouse = true;
+  let lastMousePosX = 0;
+  let lastMousePosY = 0;
+  let suddenMovement = false;
+  const EDGE_THRESHOLD = 20; // Duvar tırmalama için kenar mesafesi
 
   // Animasyon kontrolü için değişkenler
   let frameCount = 0;
@@ -145,8 +185,24 @@
 
   // Fare hareketini takip et
   document.addEventListener('mousemove', function(event) {
+    const oldMousePosX = mousePosX;
+    const oldMousePosY = mousePosY;
     mousePosX = event.clientX;
     mousePosY = event.clientY;
+    
+    // Ani hareket kontrolü
+    const dx = mousePosX - oldMousePosX;
+    const dy = mousePosY - oldMousePosY;
+    const movement = Math.sqrt(dx * dx + dy * dy);
+    suddenMovement = movement > 50; // 50 piksel üzeri ani hareket
+
+    // Fare hareketi varsa ve kedi uyuyorsa uyandır
+    if (movement > 0 && isSleeping) {
+      isSleeping = false;
+      isTired = false;
+      currentSprite = 'idle';
+      console.log('Neko uyandı!');
+    }
   });
 
   function updateNekoPosition() {
@@ -156,10 +212,47 @@
     const dy = mousePosY - nekoPosY;
     const distance = Math.sqrt(dx * dx + dy * dy);
 
+    // Ani fare hareketi kontrolü
+    if (suddenMovement && !isSleeping && !isScratching) {
+      currentSprite = 'alert';
+      suddenMovement = false;
+      return;
+    }
+
+    // Uyku durumunda fare hareketi kontrolü
+    if (isSleeping) {
+      return; // Fare hareketi mousemove event'inde kontrol ediliyor
+    }
+
     // Fareye yakın olduğunda hareket etmeyi durdur
-    if (distance < 8) {
+    if (distance < 5) {
       currentSprite = 'idle';
       return;
+    }
+
+    // Duvar tırmalama kontrolü
+    if (!isSleeping && !isTired && !isScratching) {
+      if (nekoPosY < EDGE_THRESHOLD) {
+        currentSprite = 'scratchWallN';
+        isScratching = true;
+        lastScratchTime = Date.now();
+        return;
+      } else if (nekoPosY > canvas.height - EDGE_THRESHOLD) {
+        currentSprite = 'scratchWallS';
+        isScratching = true;
+        lastScratchTime = Date.now();
+        return;
+      } else if (nekoPosX < EDGE_THRESHOLD) {
+        currentSprite = 'scratchWallW';
+        isScratching = true;
+        lastScratchTime = Date.now();
+        return;
+      } else if (nekoPosX > canvas.width - EDGE_THRESHOLD) {
+        currentSprite = 'scratchWallE';
+        isScratching = true;
+        lastScratchTime = Date.now();
+        return;
+      }
     }
 
     // Hareket hızını ayarla
@@ -172,11 +265,36 @@
     nekoPosX += normalizedDx * speed;
     nekoPosY += normalizedDy * speed;
       
-    // Yön belirleme
-    if (Math.abs(dx) > Math.abs(dy)) {
-      currentSprite = dx > 0 ? 'E' : 'W';
-    } else {
-      currentSprite = dy > 0 ? 'S' : 'N';
+    // Diagonal yön belirleme
+    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+    if (angle >= -22.5 && angle < 22.5) {
+      currentSprite = 'E';
+    } else if (angle >= 22.5 && angle < 67.5) {
+      currentSprite = 'SE';
+    } else if (angle >= 67.5 && angle < 112.5) {
+      currentSprite = 'S';
+    } else if (angle >= 112.5 && angle < 157.5) {
+      currentSprite = 'SW';
+    } else if (angle >= 157.5 || angle < -157.5) {
+      currentSprite = 'W';
+    } else if (angle >= -157.5 && angle < -112.5) {
+      currentSprite = 'NW';
+    } else if (angle >= -112.5 && angle < -67.5) {
+      currentSprite = 'N';
+    } else if (angle >= -67.5 && angle < -22.5) {
+      currentSprite = 'NE';
+    }
+
+    if (distance >= 8) {
+      lastMoveTime = Date.now();
+      if (isSleeping) {
+        isSleeping = false;
+        isTired = false;
+        console.log('Neko uyandı!');
+      }
+      if (isScratching) {
+        isScratching = false;
+      }
     }
   }
 
@@ -197,6 +315,41 @@
 
     // Kedi pozisyonunu güncelle
     updateNekoPosition();
+
+    const timeSinceLastMove = Date.now() - lastMoveTime;
+    const timeSinceLastStateChange = Date.now() - lastStateChange;
+    const timeSinceLastScratch = Date.now() - lastScratchTime;
+
+    // Duvar tırmalama süresi kontrolü
+    if (isScratching && timeSinceLastScratch > 2000) {
+      isScratching = false;
+      currentSprite = 'idle';
+    }
+
+    // Durum geçişleri
+    if (timeSinceLastMove > 3000 && !isSleeping && !isTired && !isScratching) {
+      // Rastgele kendini kaşıma davranışı
+      if (Math.random() < 0.3) { // %30 ihtimalle
+        currentSprite = 'scratchSelf';
+        isScratching = true;
+        lastScratchTime = Date.now();
+      } else {
+        currentSprite = 'tired';
+        isTired = true;
+        lastStateChange = Date.now();
+      }
+    } else if (isTired && timeSinceLastStateChange > 1000) {
+      currentSprite = 'sleeping';
+      isSleeping = true;
+      isTired = false;
+      sleepStartTime = Date.now();
+    }
+
+    // Kendini kaşıma süresi kontrolü
+    if (isScratching && timeSinceLastScratch > 2000) {
+      isScratching = false;
+      currentSprite = 'idle';
+    }
 
     // Karakteri offscreen canvas'a çiz
     if (sprite.complete) {

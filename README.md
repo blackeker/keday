@@ -1,10 +1,10 @@
-# Oneko Kedi
+# Keday
 
 Masaüstünüzde fare imlecini takip eden sevimli bir kedi uygulaması.
 
 ## Açıklama
 
-Oneko Kedi, klasik Unix terminal uygulaması "oneko"nun modern bir masaüstü versiyonudur. Bu uygulama, masaüstünüzde fare imlecini takip eden sevimli bir kedi karakteri ekler. Kedi, fare imlecinizin hareketlerini takip eder ve farklı durumlarda (koşma, uyuma, tırmalama vb.) farklı animasyonlar gösterir.
+Keday, klasik Unix terminal uygulaması "Keday"nun modern bir masaüstü versiyonudur. Bu uygulama, masaüstünüzde fare imlecini takip eden sevimli bir kedi karakteri ekler. Kedi, fare imlecinizin hareketlerini takip eder ve farklı durumlarda (koşma, uyuma, tırmalama vb.) farklı animasyonlar gösterir.
 
 Uygulama, Electron framework'ü kullanılarak geliştirilmiştir ve Windows işletim sisteminde çalışır. Şeffaf bir pencere kullanarak masaüstünüzdeki diğer uygulamaları etkilemeden çalışır. Sistem tepsisinde bir simge ile kolay erişim sağlar ve istediğiniz zaman kediyi gösterip gizleyebilirsiniz.
 
@@ -22,8 +22,8 @@ Uygulama, Electron framework'ü kullanılarak geliştirilmiştir ve Windows işl
 
 1. Projeyi klonlayın:
 ```bash
-git clone https://github.com/blackeker/oneko.git
-cd oneko
+git clone https://github.com/blackeker/Keday.git
+cd Keday
 ```
 
 2. Bağımlılıkları yükleyin:
@@ -43,7 +43,7 @@ npm run build
 
 ### Kullanıcı için
 
-1. [Releases](https://github.com/blackeker/oneko/releases) sayfasından en son sürümü indirin
+1. [Releases](https://github.com/blackeker/Keday/releases) sayfasından en son sürümü indirin
 2. İndirilen `.exe` dosyasını çalıştırın (kurulum gerekmez)
 
 ## Kullanım
@@ -63,7 +63,7 @@ Sorun yaşarsanız veya yardıma ihtiyacınız olursa:
 - Discord Sunucusu: [https://discord.gg/aeris](https://discord.gg/aeris)
 - GitHub Profilim: [https://github.com/blackeker](https://github.com/blackeker)
 - Instagram: [@blackekerr](https://instagram.com/blackekerr)
-- Proje Linki: [https://github.com/blackeker/oneko](https://github.com/blackeker/oneko)
+- Proje Linki: [https://github.com/blackeker/Keday](https://github.com/blackeker/Keday)
 
 ## Lisans
 

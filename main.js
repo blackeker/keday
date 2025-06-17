@@ -1,11 +1,9 @@
 const { app, BrowserWindow, screen, Tray, Menu, ipcMain, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
-const fetch = require('node-fetch');
 const Store = require('electron-store');
 const { autoUpdater } = require('electron-updater');
-const extract = require('extract-zip');
-const fse = require('fs-extra');
+const { exec } = require('child_process');
 
 const store = new Store();
 
@@ -43,6 +41,9 @@ app.on('ready', () => {
         alwaysOnTop: true,
         minimizeToTray: true,
         autoLaunch: true,
+        hiddenWindows: [], // Gizlenecek pencerelerin listesi
+        hideOnFullscreen: true, // Tam ekran modunda gizleme
+        character: 'oneko' // Varsayılan karakter
     };
 
 // Ayarları yükle fonksiyonu
@@ -70,10 +71,12 @@ app.on('ready', () => {
     }
 
 let mainWindow;
-let tray;
+let tray = null;
 let isVisible = true;
     let settings = loadSettings();
 let settingsWindow = null;
+let isQuitting = false;
+let catProcess = null; // Keday sürecini tutacak değişken
 
     const icoPath = path.join(process.resourcesPath, 'assets', 'icon.ico');
 
@@ -89,21 +92,42 @@ let settingsWindow = null;
     }
 
     function createTray() {
-    tray = new Tray(path.join(process.resourcesPath, 'assets', 'icon.png'));
+        if (tray) {
+            tray.destroy();
+        }
+        
+        const iconPath = path.join(__dirname, 'assets', 'icon.ico');
+        tray = new Tray(iconPath);
+        tray.setToolTip('Keday');
+        
         const contextMenu = Menu.buildFromTemplate([
-            { label: 'Ayarlar', click: () => openSettingsWindow() },
-            { label: 'Geliştirici Araçlarını Aç (Ayarlar)', click: () => {
-                console.log('Developer Tools menu item clicked. Current settingsWindow state:', settingsWindow);
-                    settingsWindow.webContents.openDevTools();
-                    console.log('Attempting to open DevTools via menu item.');
-            } },
+            { 
+                label: 'Ayarlar', 
+                click: () => {
+                    openSettingsWindow();
+                }
+            },
             { type: 'separator' },
-            { label: 'Çıkış', click: () => app.quit() }
+            { 
+                label: 'Çıkış', 
+                click: () => {
+                    if (catProcess) {
+                        catProcess.kill();
+                    }
+                    if (mainWindow) {
+                        mainWindow.destroy();
+                    }
+                    if (tray) {
+                        tray.destroy();
+                    }
+                    app.quit();
+                }
+            }
         ]);
-        tray.setToolTip('Oneko Kedi');
+        
         tray.setContextMenu(contextMenu);
-        tray.on('click', (event, bounds) => {
-            toggleCat();
+        tray.on('click', () => {
+            openSettingsWindow();
         });
     }
 
@@ -158,36 +182,9 @@ if (!gotTheLock) {
     });
     }
 
-    app.whenReady().then(async () => {
-        // Gerekli modülleri indir
-        await downloadRequiredModules();
-        
-        // Pencereyi oluştur
+    app.whenReady().then(() => {
         createWindow();
-
-        // Ayarları uygula
-        if (mainWindow) {
-            mainWindow.setAlwaysOnTop(settings.alwaysOnTop, 'floating');
-            mainWindow.setHasShadow(settings.showShadow);
-            
-            // Ayarları renderer sürecine gönder
-            mainWindow.webContents.on('did-finish-load', () => {
-                mainWindow.webContents.send('set-speed', settings.speed);
-                mainWindow.webContents.send('set-size', settings.size);
-                mainWindow.webContents.send('set-always-on-top', settings.alwaysOnTop);
-                mainWindow.webContents.send('set-shadow', settings.showShadow);
-                mainWindow.webContents.send('set-shadow-opacity', settings.shadowOpacity);
-                mainWindow.webContents.send('set-shadow-size', settings.shadowSize);
-            });
-        }
-
-        app.on('activate', () => {
-            if (BrowserWindow.getAllWindows().length === 0) {
-                createWindow();
-            }
-        });
-
-        // Otomatik güncelleme kontrolü
+        createTray();
         autoUpdater.checkForUpdatesAndNotify();
     });
 
@@ -299,20 +296,17 @@ if (!gotTheLock) {
     });
 
     ipcMain.on('set-character', (event, character) => {
-        console.log('Received set-character IPC:', character);
+        console.log('Karakter değiştiriliyor:', character);
         settings.character = character;
         saveSettings(settings);
-        if (mainWindow) {
-            mainWindow.loadFile(character === 'neko' ? 'index.html' : 'anime-girl.html');
-        }
         BrowserWindow.getAllWindows().forEach(win => {
-            win.webContents.send('character-changed', character);
+            win.webContents.send('set-character', character);
         });
     });
 
     ipcMain.on('get-current-character', (event) => {
-        console.log('Received get-current-character IPC');
-        event.reply('current-character', settings.character);
+        console.log('Mevcut karakter gönderiliyor:', settings.character || 'oneko');
+        event.reply('current-character', settings.character || 'oneko');
     });
 
     ipcMain.on('set-idle-time', (event, time) => {
@@ -441,182 +435,6 @@ if (!gotTheLock) {
         settingsWindow.on('closed', () => { settingsWindow = null; });
     });
 
-    // Ayarları uygula
-    function applySettings(settings) {
-        if (settings.speed) {
-            mainWindow.webContents.send('set-speed', settings.speed);
-        }
-        if (settings.size) {
-            mainWindow.webContents.send('set-size', settings.size);
-        }
-        if (settings.alwaysOnTop !== undefined) {
-            mainWindow.setAlwaysOnTop(settings.alwaysOnTop);
-            mainWindow.webContents.send('set-alwaysOnTop', settings.alwaysOnTop);
-        }
-        if (settings.minimizeToTray !== undefined) {
-        }
-        if (settings.autoLaunch !== undefined) {
-
-        }
-    }
-
-    // Mini oyun başlatma
-    ipcMain.on('start-mini-game', () => {
-        if (gameWindow) {
-            gameWindow.focus();
-            return;
-        }
-
-        gameWindow = new BrowserWindow({
-            width: 800,
-            height: 600,
-            webPreferences: {
-                nodeIntegration: true,
-                contextIsolation: false
-            },
-            parent: mainWindow,
-            modal: true
-        });
-
-        gameWindow.loadFile('game.html');
-        gameWindow.on('closed', () => {
-            gameWindow = null;
-        });
-    });
-
-    // Başarı rozetlerini göster
-    ipcMain.on('show-badges', () => {
-        const badges = [
-            {
-                id: 'first_steps',
-                name: 'İlk Adımlar',
-                description: 'Kediyi ilk kez hareket ettirdiniz',
-                icon: 'assets/badges/first_steps.png',
-                unlocked: true
-            },
-            {
-                id: 'playful_cat',
-                name: 'Oyunbaz Kedi',
-                description: 'Kediyi 10 kez hareket ettirdiniz',
-                icon: 'assets/badges/playful_cat.png',
-                unlocked: false
-            },
-            {
-                id: 'loyal_companion',
-                name: 'Sadık Arkadaş',
-                description: 'Uygulamayı 7 gün boyunca kullandınız',
-                icon: 'assets/badges/loyal_companion.png',
-                unlocked: false
-            }
-        ];
-        settingsWindow.webContents.send('show-badges-modal', badges);
-    });
-
-    // Günlük görevleri göster
-    ipcMain.on('show-tasks', () => {
-        const tasks = [
-            {
-                id: 'move_cat',
-                name: 'Kediyi Hareket Ettir',
-                description: 'Kediyi 5 kez hareket ettirin',
-                progress: 0,
-                completed: false
-            },
-            {
-                id: 'daily_visit',
-                name: 'Günlük Ziyaret',
-                description: 'Uygulamayı 3 kez açın',
-                progress: 0,
-                completed: false
-            }
-        ];
-        settingsWindow.webContents.send('show-tasks-modal', tasks);
-    });
-
-    // Görev güncelleme
-    ipcMain.on('update-task', (event, taskId) => {
-        // Görev güncelleme mantığı
-        const task = {
-            id: taskId,
-            progress: 100,
-            completed: true
-        };
-        settingsWindow.webContents.send('task-updated', task);
-    });
-
-    // Başarı bildirimi
-    ipcMain.on('unlock-achievement', (event, achievementId) => {
-        const achievement = {
-            id: achievementId,
-            name: 'Yeni Başarı Kazanıldı!',
-            icon: 'assets/badges/achievement.png'
-        };
-        settingsWindow.webContents.send('achievement-unlocked', achievement);
-    });
-
-    // Başarıları kontrol et
-    function checkAchievements() {
-        const tasks = settings.tasks || dailyTasks;
-        const badges = settings.badges || badges;
-
-        // İlk görev başarısı
-        if (tasks.some(task => task.completed) && !badges.find(b => b.id === 'first_steps')?.unlocked) {
-            unlockBadge('first_steps');
-        }
-
-        // Hız başarısı
-        if (settings.speed >= 50 && !badges.find(b => b.id === 'speed_demon')?.unlocked) {
-            unlockBadge('speed_demon');
-        }
-
-        // Oyun başarısı
-        if (settings.gameHighScore >= 1000 && !badges.find(b => b.id === 'game_master')?.unlocked) {
-            unlockBadge('game_master');
-        }
-    }
-
-    // Rozet açma
-    function unlockBadge(badgeId) {
-        const badges = settings.badges || badges;
-        const badge = badges.find(b => b.id === badgeId);
-        if (badge && !badge.unlocked) {
-            badge.unlocked = true;
-            saveSettings(settings);
-            
-            // Tüm pencerelere başarı bildirimini gönder
-            BrowserWindow.getAllWindows().forEach(win => {
-                win.webContents.send('achievement-unlocked', badge);
-            });
-        }
-    }
-
-    // Görevleri sıfırla (her gün)
-    function resetDailyTasks() {
-        const tasks = settings.tasks || dailyTasks;
-        tasks.forEach(task => {
-            task.progress = 0;
-            task.completed = false;
-        });
-        saveSettings(settings);
-    }
-
-    // Her gün gece yarısı görevleri sıfırla
-    setInterval(() => {
-        const now = new Date();
-        if (now.getHours() === 0 && now.getMinutes() === 0) {
-            resetDailyTasks();
-        }
-    }, 60000); // Her dakika kontrol et
-
-    // Oyun skoru güncelleme
-    ipcMain.on('update-game-score', (event, score) => {
-        if (score > (settings.gameHighScore || 0)) {
-            settings.gameHighScore = score;
-            saveSettings(settings);
-            checkAchievements();
-        }
-    });
-
     ipcMain.on('get-speed', (event) => {
         console.log('Received get-speed IPC');
         event.reply('speed-status', settings.speed);
@@ -625,6 +443,121 @@ if (!gotTheLock) {
     ipcMain.on('get-size', (event) => {
         console.log('Received get-size IPC');
         event.reply('size-status', settings.size);
+    });
+
+    // Aktif pencere kontrolü
+    let activeWindow = null;
+    let isFullscreen = false;
+
+    // Aktif pencereyi kontrol et
+    function checkActiveWindow() {
+        const focusedWindow = screen.getDisplayNearestPoint(screen.getCursorScreenPoint());
+        const windows = BrowserWindow.getAllWindows();
+        
+        // Tam ekran kontrolü
+        isFullscreen = focusedWindow.bounds.width === screen.getPrimaryDisplay().workAreaSize.width &&
+                      focusedWindow.bounds.height === screen.getPrimaryDisplay().workAreaSize.height;
+
+        // Aktif pencereyi bul
+        activeWindow = windows.find(win => {
+            const bounds = win.getBounds();
+            return bounds.x <= focusedWindow.bounds.x && 
+                   bounds.x + bounds.width >= focusedWindow.bounds.x &&
+                   bounds.y <= focusedWindow.bounds.y && 
+                   bounds.y + bounds.height >= focusedWindow.bounds.y;
+        });
+
+        // Kedi penceresini kontrol et
+        if (mainWindow) {
+            const shouldHide = (settings.hideOnFullscreen && isFullscreen) ||
+                             (activeWindow && settings.hiddenWindows.includes(activeWindow.getTitle()));
+            
+            if (shouldHide) {
+                mainWindow.hide();
+            } else {
+                mainWindow.show();
+            }
+        }
+    }
+
+    // Pencere kontrolü için interval
+    setInterval(checkActiveWindow, 1000);
+
+    // IPC Handlers
+    ipcMain.on('set-hidden-windows', (event, windows) => {
+        console.log('Gizlenecek pencereler güncelleniyor:', windows);
+        settings.hiddenWindows = windows;
+        saveSettings(settings);
+    });
+
+    ipcMain.on('set-hide-on-fullscreen', (event, hide) => {
+        console.log('Tam ekran gizleme ayarı güncelleniyor:', hide);
+        settings.hideOnFullscreen = hide;
+        saveSettings(settings);
+    });
+
+    // Aktif uygulamaları al
+    function getActiveApplications() {
+        return new Promise((resolve) => {
+            exec('tasklist /v /fo csv', (error, stdout) => {
+                if (error) {
+                    console.error('Aktif uygulamalar alınırken hata:', error);
+                    resolve([]);
+                    return;
+                }
+
+                const lines = stdout.split('\n');
+                const activeApps = new Set();
+                const systemProcesses = [
+                    'System', 'Registry', 'smss.exe', 'csrss.exe', 'wininit.exe',
+                    'services.exe', 'lsass.exe', 'svchost.exe', 'spoolsv.exe',
+                    'explorer.exe', 'taskmgr.exe', 'dwm.exe', 'conhost.exe',
+                    'RuntimeBroker.exe', 'SearchHost.exe', 'ShellExperienceHost.exe',
+                    'StartMenuExperienceHost.exe', 'TextInputHost.exe', 'WmiPrvSE.exe',
+                    'ApplicationFrameHost.exe', 'SearchIndexer.exe', 'sihost.exe',
+                    'ctfmon.exe', 'fontdrvhost.exe', 'SecurityHealthService.exe',
+                    'SecurityHealthSystray.exe', 'smartscreen.exe', 'WmiApSrv.exe',
+                    'WUDFHost.exe', 'Idle', 'winlogon.exe', 'winlogon.exe', 'winlogon.exe',
+                ];
+
+                lines.forEach(line => {
+                    if (line.includes('"Window Title"')) return; // Başlık satırını atla
+                    const parts = line.split('","');
+                    if (parts.length >= 8) {
+                        const processName = parts[0].replace(/"/g, '').trim();
+                        const windowTitle = parts[7].replace(/"/g, '').trim();
+                        // Microsoft hizmetleri ve sistem uygulamaları filtrele
+                        if (
+                            !systemProcesses.includes(processName) &&
+                            windowTitle &&
+                            windowTitle !== 'N/A' &&
+                            windowTitle !== 'Default IME' &&
+                            !windowTitle.toLowerCase().includes('microsoft') &&
+                            !windowTitle.toLowerCase().includes('windows') &&
+                            !windowTitle.toLowerCase().includes('host process') &&
+                            !windowTitle.toLowerCase().includes('service') &&
+                            !windowTitle.toLowerCase().includes('runtime broker') &&
+                            !windowTitle.toLowerCase().includes('background task host')
+                        ) {
+                            activeApps.add(windowTitle);
+                        }
+                    }
+                });
+
+                resolve(Array.from(activeApps));
+            });
+        });
+    }
+
+    ipcMain.on('get-window-list', async (event) => {
+        const activeApps = await getActiveApplications();
+        console.log('Aktif uygulamalar:', activeApps);
+        event.reply('window-list', activeApps);
+    });
+
+    ipcMain.on('get-settings', (event) => {
+        console.log('Ayarlar gönderiliyor:', settings);
+        event.reply('current-settings', settings);
     });
 
 function createWindow() {
@@ -684,49 +617,46 @@ function handleWindowClose(event) {
     }
 }
 
-// Gerekli modüllerin indirilmesi
-async function downloadRequiredModules() {
-  const modules = [
-    {
-      name: 'assets',
-      url: 'https://github.com/blackeker/oneko-assets/archive/refs/heads/main.zip',
-      destination: path.join(app.getPath('userData'), 'assets')
+// Keday sürecini başlatma fonksiyonu
+function startCat() {
+    if (catProcess) {
+        catProcess.kill();
     }
-  ];
+    catProcess = require('child_process').spawn('Keday', [], {
+        detached: true
+    });
+}
 
-  for (const module of modules) {
-    try {
-      const response = await fetch(module.url);
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      
-      const buffer = await response.buffer();
-      const zipPath = path.join(app.getPath('temp'), `${module.name}.zip`);
-      
-      fs.writeFileSync(zipPath, buffer);
-      
-      // ZIP dosyasını geçici bir klasöre çıkart
-      const tempExtractDir = path.join(app.getPath('temp'), `${module.name}_extract`);
-      if (fs.existsSync(tempExtractDir)) fse.removeSync(tempExtractDir);
-      await extract(zipPath, { dir: tempExtractDir });
-      
-      // ZIP içindeki ana klasörü bul (ör: oneko-assets-main)
-      const extractedFolders = fs.readdirSync(tempExtractDir);
-      const mainFolder = extractedFolders.find(f => f.startsWith('oneko-assets'));
-      if (!mainFolder) throw new Error('Ana klasör bulunamadı!');
-      const mainFolderPath = path.join(tempExtractDir, mainFolder);
-      
-      // Hedefe taşı
-      if (fs.existsSync(module.destination)) fse.removeSync(module.destination);
-      fse.moveSync(mainFolderPath, module.destination, { overwrite: true });
-      
-      // Geçici klasörleri sil
-      fse.removeSync(tempExtractDir);
-      fs.unlinkSync(zipPath);
-      
-      console.log(`${module.name} başarıyla indirildi ve kuruldu.`);
-    } catch (error) {
-      console.error(`${module.name} indirilirken hata oluştu:`, error);
-      dialog.showErrorBox('Hata', `${module.name} indirilirken bir hata oluştu. Lütfen internet bağlantınızı kontrol edin ve tekrar deneyin.`);
+// Keday sürecini durdurma fonksiyonu
+function stopCat() {
+    if (catProcess) {
+        catProcess.kill();
+        catProcess = null;
     }
-  }
-} 
+}
+
+app.on('before-quit', () => {
+    isQuitting = true;
+    // Tüm pencereleri kapat
+    if (mainWindow) {
+        mainWindow.destroy();
+    }
+    if (settingsWindow) {
+        settingsWindow.destroy();
+    }
+    // Tray'i kaldır
+    if (tray) {
+        tray.destroy();
+    }
+    // Keday sürecini sonlandır
+    if (catProcess) {
+        catProcess.kill();
+    }
+    // Kullanıcı verilerini temizle
+    const userDataPath = app.getPath('userData');
+    try {
+        fs.rmSync(userDataPath, { recursive: true, force: true });
+    } catch (error) {
+        console.error('Kullanıcı verileri temizlenirken hata:', error);
+    }
+});

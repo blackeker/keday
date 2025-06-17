@@ -1,0 +1,45 @@
+# Keday v2.0.5 Sürüm Notları
+
+## 🚀 Yenilikler ve Geliştirmeler
+
+- **Küçük Kurulum, Hızlı Başlangıç:**  
+  Artık uygulama ilk kurulumda sadece temel dosyaları içeriyor. Gerekli olan tüm resimler ve ek modüller, uygulama ilk açıldığında internetten otomatik olarak indiriliyor. Böylece kurulum dosyası çok daha küçük ve hızlı!
+
+- **Assets Otomatik İndirme:**  
+  Eksik olan veya güncel assets (görseller, animasyonlar) Github üzerinden otomatik olarak indiriliyor ve doğru klasöre yerleştiriliyor.  
+  - Eğer internet bağlantınız yoksa, uygulama sizi uyarıyor ve tekrar denemenizi istiyor.
+
+- **Gelişmiş Tema Sistemi:**  
+  Açık, koyu, pembe ve yeşil olmak üzere dört farklı tema seçeneği eklendi. Tema seçimi anında uygulanıyor ve kaydediliyor.
+
+- **Ayarlar ve Kişiselleştirme:**  
+  - Hız, boyut, her zaman üstte, başlangıçta çalıştır, simge durumuna küçült gibi ayarlar geliştirildi.
+  - Tüm ayarlar anında kaydediliyor ve uygulama yeniden başlatıldığında korunuyor.
+
+- **Güncellenmiş Kurulum Sihirbazı:**  
+  NSIS tabanlı yeni kurulum sihirbazı ile kullanıcılar kurulum klasörünü seçebiliyor, masaüstü ve başlat menüsü kısayolları otomatik oluşturuluyor.
+
+- **Otomatik Güncelleme:**  
+  Uygulama açıldığında yeni bir sürüm olup olmadığını kontrol ediyor ve güncelleme varsa sizi bilgilendiriyor.
+
+## 🐾 Teknik Detaylar
+
+- **Kodda Temizlik ve Modernizasyon:**  
+  - Gereksiz bağımlılıklar kaldırıldı.
+  - Kodun büyük kısmı modüler ve okunabilir hale getirildi.
+  - `main.js` dosyası, assets indirme ve çıkarma işlemlerini otomatik yönetiyor.
+  - Hatalı veya eksik assets durumunda kullanıcıya Türkçe hata mesajı gösteriliyor.
+
+- **Güvenlik ve Stabilite:**  
+  - Dosya indirme ve çıkarma işlemlerinde hata yönetimi güçlendirildi.
+  - Tüm ayarlar güvenli bir şekilde `electron-store` ile saklanıyor.
+
+## 📝 Notlar
+
+- Uygulamanın ilk açılışında internet bağlantınızın olması gerekmektedir.
+- Herhangi bir hata veya öneri için lütfen [GitHub](https://github.com/blackeker/Keday) üzerinden bildirimde bulunun.
+
+---
+
+Yapımcı: Blackeker  
+Son Güncelleme: 08 Haziran 2025 
