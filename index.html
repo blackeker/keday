@@ -19,33 +19,20 @@
         }
         #oneko-canvas {
             position: fixed;
-            pointer-events: none;
-            z-index: 999999;
+            top: 0;
+            left: 0;
             width: 100vw;
             height: 100vh;
+            pointer-events: none;
+            z-index: 999999;
+            background: transparent !important;
             image-rendering: pixelated;
             image-rendering: crisp-edges;
-        }
-        .controls {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 1000000;
-            background: rgba(255, 255, 255, 0.8);
-            padding: 10px;
-            border-radius: 5px;
-            pointer-events: auto;
-        }
-        .controls button {
-            margin: 5px;
-            padding: 5px 10px;
-            cursor: pointer;
         }
     </style>
 </head>
 <body>
     <canvas id="oneko-canvas"></canvas>
-
     <script src="oneko.js"></script>
 </body>
 </html> 

@@ -968,7 +968,7 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
         <div class="about-section-glow">
-            <h3>🔥 Oneko Kedi v1.0.3 🔥 <span class="version-date">(Son Güncelleme: 08 Haziran 2025)</span></h3>
+            <h3>🔥 Oneko Kedi v3.2.0 🔥 <span class="version-date">(Son Güncelleme: 08 Haziran 2025)</span></h3>
             <p>Yapımcı: <strong>Blackeker</strong> — <span class="highlight">Kodun ve sevginin ustası</span></p>
 
             <div class="social-links-glow" role="list" aria-label="Sosyal Medya Bağlantıları">
@@ -1230,16 +1230,14 @@
         </style>
 
         <div class="footer">
-            Oneko v1.0.3
+            Oneko v3.2.0
         </div>
     </div>
 
     <script>
         const { ipcRenderer } = require('electron');
 
-        // Ayar durumunu güncelle
         function updateSettingStatus(item, isActive) {
-            console.log('Updating status for item:', item.id, 'to active:', isActive);
             const statusDot = item.querySelector('.setting-status');
             if (isActive) {
                 item.classList.remove('inactive');
@@ -1258,151 +1256,96 @@
             }
         }
 
-        // Sayfa yüklendiğinde mevcut ayarları yükle ve olay dinleyicilerini ayarla
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('DOM Content Loaded in settings.html');
-
-            // Tüm ayar öğelerine tıklama olayı ekle
             document.querySelectorAll('.setting-item').forEach(item => {
                 const checkbox = item.querySelector('input[type="checkbox"]');
                 if (checkbox) {
-                    // Sadece checkbox içeren .setting-item'lar için tıklama eventi
                     item.addEventListener('click', function() {
-                        console.log('Setting item clicked:', this.id); // Tıklanan öğenin ID'si
                         checkbox.checked = !checkbox.checked;
-                        console.log('Checkbox checked status after click:', checkbox.checked); // Checkbox durumu
                         updateSettingStatus(this, checkbox.checked);
-                        
                         const settingId = checkbox.id;
-                        console.log(`Sending IPC: set-${settingId}, value: ${checkbox.checked}`); // IPC gönderme logu
                         ipcRenderer.send(`set-${settingId}`, checkbox.checked);
                     });
                 }
             });
 
-            // Hız ayarı
             const speedSlider = document.getElementById('speedRange');
             const speedValueDisplay = document.getElementById('speedValue');
             if (speedSlider && speedValueDisplay) {
-                console.log('Speed slider initialized');
-                
-                // Başlangıç değerini ayarla
                 speedSlider.value = speedSlider.value;
                 speedValueDisplay.textContent = speedSlider.value;
-                
-                // IPC ile mevcut değeri al
                 ipcRenderer.send('get-current-speed');
-                
-                // IPC yanıtını dinle
                 ipcRenderer.on('current-speed', (event, speed) => {
-                    console.log('Received speed value:', speed);
                     speedSlider.value = speed;
                     speedValueDisplay.textContent = speed;
                 });
-
-                // Slider değişikliğini dinle
                 speedSlider.addEventListener('input', (e) => {
                     const speed = parseInt(e.target.value);
-                    console.log('Speed changed to:', speed);
                     speedValueDisplay.textContent = speed;
                     ipcRenderer.send('set-speed', speed);
                 });
             }
 
-            // Boyut ayarı
             const sizeSlider = document.getElementById('sizeRange');
             const sizeValueDisplay = document.getElementById('sizeValue');
             if (sizeSlider && sizeValueDisplay) {
-                console.log('Size slider initialized');
-                
-                // Başlangıç değerini ayarla
                 sizeSlider.value = sizeSlider.value;
                 sizeValueDisplay.textContent = sizeSlider.value + '%';
-                
-                // IPC ile mevcut değeri al
                 ipcRenderer.send('get-current-size');
-                
-                // IPC yanıtını dinle
                 ipcRenderer.on('current-size', (event, size) => {
-                    console.log('Received size value:', size);
                     sizeSlider.value = size;
                     sizeValueDisplay.textContent = size + '%';
                 });
-
-                // Slider değişikliğini dinle
                 sizeSlider.addEventListener('input', (e) => {
                     const size = parseInt(e.target.value);
-                    console.log('Size changed to:', size);
                     sizeValueDisplay.textContent = size + '%';
                     ipcRenderer.send('set-size', size);
                 });
             }
 
-            // Opaklık ayarı
             const opacitySlider = document.getElementById('opacity');
             const opacityValue = document.getElementById('opacity-value');
             if (opacitySlider && opacityValue) {
-                console.log('Opacity slider initialized');
                 ipcRenderer.send('get-opacity');
-                
                 ipcRenderer.on('opacity-status', (event, opacity) => {
-                    console.log('Received opacity value:', opacity);
                     opacitySlider.value = opacity;
                     opacityValue.textContent = opacity;
                 });
-
                 opacitySlider.addEventListener('input', (e) => {
                     const opacity = parseInt(e.target.value);
-                    console.log('Opacity changed to:', opacity);
                     opacityValue.textContent = opacity;
                     ipcRenderer.send('set-opacity', opacity);
                 });
             }
 
-            // Bekleme süresi ayarı
             const idleTimeSlider = document.getElementById('idleTimeRange');
             const idleTimeValue = document.getElementById('idleTimeValue');
             if (idleTimeSlider && idleTimeValue) {
-                console.log('Idle time slider initialized');
                 ipcRenderer.send('get-idle-time');
-                
                 ipcRenderer.on('idle-time-status', (event, time) => {
-                    console.log('Received idle time value:', time);
                     idleTimeSlider.value = time;
                     idleTimeValue.textContent = time;
                 });
-
                 idleTimeSlider.addEventListener('input', (e) => {
                     const time = parseInt(e.target.value);
-                    console.log('Idle time changed to:', time);
                     idleTimeValue.textContent = time;
                     ipcRenderer.send('set-idle-time', time);
                 });
             }
 
-            // Checkbox ayarları için başlangıç durumlarını al ve dinleyicileri ayarla
             document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
                 const settingId = checkbox.id;
                 const parentItem = checkbox.closest('.setting-item');
-                console.log(`Checkbox element ${settingId}:`, checkbox); // Her checkbox elementini logla
-                console.log(`Parent item for ${settingId}:`, parentItem); // Her checkbox'ın parent elementini logla
                 if (parentItem) {
-                    // Initial status request
                     ipcRenderer.send(`get-${settingId}`);
-                    
-                    // Listen for status updates
                     ipcRenderer.on(`${settingId}-status`, (event, status) => {
-                        console.log(`Received status for ${settingId}: ${status}`);
                         checkbox.checked = status;
                         updateSettingStatus(parentItem, status);
                     });
                 }
             });
-            
-            // Karakter seçimi (Existing logic, just ensured it's within DOMContentLoaded)
             const characterOptions = document.querySelectorAll('.character-option');
-            console.log('Character Options elements:', characterOptions); // Karakter seçeneklerini logla
-            ipcRenderer.send('get-current-character'); // Initial request
+            ipcRenderer.send('get-current-character');
             ipcRenderer.on('current-character', (event, character) => {
                 characterOptions.forEach(option => {
                     option.classList.toggle('selected', option.dataset.character === character);
@@ -1413,14 +1356,8 @@
                     ipcRenderer.send('set-character', option.dataset.character);
                 });
             });
-
-            // Geri kalan slider ve checkboxların IPC ve Event Listenerslerini ekleyebiliriz.
-            // Örneğin:
-
-            // Fare takibi
             const followMouseCheckbox = document.getElementById('followMouse');
             const followMouseItem = document.getElementById('followMouseItem'); 
-            console.log('Follow Mouse Checkbox element:', followMouseCheckbox); // followMouseCheckbox elementini logla
             if (followMouseCheckbox && followMouseItem) {
                 ipcRenderer.send('get-follow-mouse');
                 ipcRenderer.on('follow-mouse-status', (event, enabled) => {
@@ -1428,11 +1365,8 @@
                     updateSettingStatus(followMouseItem, enabled);
                 });
             }
-
-            // Ses efektleri
             const soundEffectsCheckbox = document.getElementById('playSounds');
             const soundEffectsItem = document.getElementById('playSoundsItem'); 
-            console.log('Sound Effects Checkbox element:', soundEffectsCheckbox); // soundEffectsCheckbox elementini logla
             if (soundEffectsCheckbox && soundEffectsItem) {
                 ipcRenderer.send('get-sound-effects');
                 ipcRenderer.on('sound-effects-status', (event, enabled) => {
@@ -1440,11 +1374,8 @@
                     updateSettingStatus(soundEffectsItem, enabled);
                 });
             }
-
-            // Duygu ifadeleri
             const emotionsCheckbox = document.getElementById('showEmotions');
             const emotionsItem = document.getElementById('showEmotionsItem'); 
-            console.log('Emotions Checkbox element:', emotionsCheckbox); // emotionsCheckbox elementini logla
             if (emotionsCheckbox && emotionsItem) {
                 ipcRenderer.send('get-emotions');
                 ipcRenderer.on('emotions-status', (event, enabled) => {
@@ -1452,11 +1383,8 @@
                     updateSettingStatus(emotionsItem, enabled);
                 });
             }
-
-            // Hareket izi
             const trailCheckbox = document.getElementById('showTrail');
             const trailItem = document.getElementById('showTrailItem'); 
-            console.log('Trail Checkbox element:', trailCheckbox); // trailCheckbox elementini logla
             if (trailCheckbox && trailItem) {
                 ipcRenderer.send('get-trail-status'); 
                 ipcRenderer.on('trail-status', (event, enabled) => {
@@ -1464,13 +1392,9 @@
                     updateSettingStatus(trailItem, enabled);
                 });
             }
-
-            // Ayarlar butonuna tıklama olayı
             document.getElementById('settingsButton').addEventListener('click', () => {
                 ipcRenderer.send('open-settings');
             });
-
-            // Sayfa yüklendiğinde butonu göster
             const settingsButton = document.getElementById('settingsButton');
             if (settingsButton) {
                 settingsButton.classList.add('pulse');
@@ -1496,12 +1420,9 @@
             require('electron').shell.openExternal('https://github.com/blackeker/oneko');
         }
 
-        // Tema sistemi için JavaScript
         function initializeThemeSystem() {
             const themeSystem = document.querySelector('.theme-system');
             const themeOptions = document.getElementById('themeOptions');
-            
-            // Tema sisteminden tüm temaları al
             const themes = Array.from(themeSystem.querySelectorAll('[data-theme]')).map(theme => ({
                 name: theme.getAttribute('data-theme'),
                 displayName: theme.getAttribute('data-theme-name') || theme.getAttribute('data-theme'),

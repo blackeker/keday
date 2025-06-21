@@ -1,45 +1,90 @@
-# Keday v2.0.5 Sürüm Notları
+# Keday v3.2.0 - "Miyav Garanti" Sürümü
 
 ## 🚀 Yenilikler ve Geliştirmeler
 
-- **Küçük Kurulum, Hızlı Başlangıç:**  
-  Artık uygulama ilk kurulumda sadece temel dosyaları içeriyor. Gerekli olan tüm resimler ve ek modüller, uygulama ilk açıldığında internetten otomatik olarak indiriliyor. Böylece kurulum dosyası çok daha küçük ve hızlı!
+- **Türkçe kurulum arayüzü eklendi:**  
+  Artık uygulama kurulumunda Türkçe dil seçeneği sunuluyor.
 
-- **Assets Otomatik İndirme:**  
-  Eksik olan veya güncel assets (görseller, animasyonlar) Github üzerinden otomatik olarak indiriliyor ve doğru klasöre yerleştiriliyor.  
-  - Eğer internet bağlantınız yoksa, uygulama sizi uyarıyor ve tekrar denemenizi istiyor.
+- **Eğlenceli kurulum mesajları ve animasyonlar:**  
+  Kurulum sırasında kullanıcıların ilgisini çekecek eğlenceli animasyonlar ve mesajlar sunuluyor.
 
-- **Gelişmiş Tema Sistemi:**  
-  Açık, koyu, pembe ve yeşil olmak üzere dört farklı tema seçeneği eklendi. Tema seçimi anında uygulanıyor ve kaydediliyor.
+- **Özelleştirilmiş kurulum sihirbazı:**  
+  Kurulum sihirbazı görsel olarak yenilendi ve kullanıcılar kurulum klasörünü seçebiliyor, masaüstü ve başlat menüsü kısayolları otomatik oluşturuluyor.
 
-- **Ayarlar ve Kişiselleştirme:**  
-  - Hız, boyut, her zaman üstte, başlangıçta çalıştır, simge durumuna küçült gibi ayarlar geliştirildi.
-  - Tüm ayarlar anında kaydediliyor ve uygulama yeniden başlatıldığında korunuyor.
+- **Türkçe dil desteği:**  
+  Uygulama artık Türkçe dil desteği sunuyor.
 
-- **Güncellenmiş Kurulum Sihirbazı:**  
-  NSIS tabanlı yeni kurulum sihirbazı ile kullanıcılar kurulum klasörünü seçebiliyor, masaüstü ve başlat menüsü kısayolları otomatik oluşturuluyor.
-
-- **Otomatik Güncelleme:**  
-  Uygulama açıldığında yeni bir sürüm olup olmadığını kontrol ediyor ve güncelleme varsa sizi bilgilendiriyor.
+- **Geliştirilmiş kaldırma işlemi:**  
+  Kurulum ve kaldırma işlemleri için özel mesajlar eklendi ve kaldırma işlemi sırasındaki hatalar düzeltildi.
 
 ## 🐾 Teknik Detaylar
 
-- **Kodda Temizlik ve Modernizasyon:**  
-  - Gereksiz bağımlılıklar kaldırıldı.
-  - Kodun büyük kısmı modüler ve okunabilir hale getirildi.
-  - `main.js` dosyası, assets indirme ve çıkarma işlemlerini otomatik yönetiyor.
-  - Hatalı veya eksik assets durumunda kullanıcıya Türkçe hata mesajı gösteriliyor.
+- **Electron Builder 24.13.3:**  
+  Uygulama geliştirilirken Electron Builder 24.13.3 kullanıldı.
 
-- **Güvenlik ve Stabilite:**  
-  - Dosya indirme ve çıkarma işlemlerinde hata yönetimi güçlendirildi.
-  - Tüm ayarlar güvenli bir şekilde `electron-store` ile saklanıyor.
+- **NSIS 3.0.4.1:**  
+  Kurulum işlemleri NSIS 3.0.4.1 kullanılarak gerçekleştirildi.
+
+- **Windows x64 desteği:**  
+  Uygulama Windows x64 platformunda çalışıyor.
+
+- **Türkçe dil paketi entegrasyonu:**  
+  Uygulama Türkçe dil paketi entegrasyonu için güncellendi.
 
 ## 📝 Notlar
 
-- Uygulamanın ilk açılışında internet bağlantınızın olması gerekmektedir.
-- Herhangi bir hata veya öneri için lütfen [GitHub](https://github.com/blackeker/Keday) üzerinden bildirimde bulunun.
+- **Bazı sistemlerde kurulum sırasında dil dosyaları uyarısı görülebilir (etkilemez):**  
+  Bazı sistemlerde kurulum sırasında dil dosyaları uyarısı görülebilir, ancak bu etkilemez.
+
+- **Windows 7'de bazı görsel efektler sınırlı olabilir:**  
+  Windows 7'de bazı görsel efektler sınırlı olabilir.
+
+- **Bu sürüm Windows 10 ve üzeri sistemlerde en iyi performansı gösterir:**  
+  Bu sürüm Windows 10 ve üzeri sistemlerde en iyi performansı gösterir.
+
+- **Kurulum sırasında antivirüs programları uyarı verebilir (yalancı pozitif):**  
+  Kurulum sırasında antivirüs programları uyarı verebilir (yalancı pozitif).
+
+- **Sistem yeniden başlatıldığında otomatik başlatma seçeneği aktif olacaktır:**  
+  Sistem yeniden başlatıldığında otomatik başlatma seçeneği aktif olacaktır.
+
+## 🌟 Gelecek Sürüm Planları
+
+- **Daha fazla karakter seçeneği:**  
+  Daha fazla karakter seçeneği eklenecek.
+
+- **Özelleştirilebilir animasyonlar:**  
+  Özelleştirilebilir animasyonlar eklenecek.
+
+- **Gelişmiş ayarlar menüsü:**  
+  Gelişmiş ayarlar menüsü eklenecek.
+
+- **Çoklu dil desteği:**  
+  Çoklu dil desteği eklenecek.
+
+- **Otomatik güncelleme sistemi:**  
+  Otomatik güncelleme sistemi eklenecek.
+
+## 📧 İletişim
+
+- **GitHub:**  
+  [https://github.com/blackeker/keday](https://github.com/blackeker/keday)
+
+- **E-posta:**  
+  [blackeker@gmail.com](mailto:blackeker@gmail.com)
+
+- **Discord:**  
+  [https://discord.gg/blackeker](https://discord.gg/blackeker)
+
+## 🤝 Teşekkürler
+
+- **Tüm test edicilere:**  
+  Uygulama test edicilerine teşekkür ederiz.
+
+- **Geri bildirim sağlayan kullanıcılara:**  
+  Geri bildirim sağlayan kullanıcılara teşekkür ederiz.
 
 ---
 
 Yapımcı: Blackeker  
-Son Güncelleme: 08 Haziran 2025 
+Son Güncelleme: 17 Haziran 2025 

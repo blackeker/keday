@@ -1,27 +1,37 @@
 {
-  "name": "Keday",
+  "name": "keday",
   "version": "3.2.0",
-  "description": "Keday - Masaüstü Arkadaşınız",
+  "description": "Masaüstü kedisi uygulaması",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder --config.asar=true --config.compression=maximum",
-    "postinstall": "electron-builder install-app-deps"
+    "build": "electron-builder",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Blackeker",
+  "author": "blackeker",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^29.4.6",
-    "electron-builder": "^24.13.3"
+    "electron": "^28.1.0",
+    "electron-builder": "^24.13.3",
+    "rimraf": "^5.0.10"
+  },
+  "dependencies": {
+    "electron-store": "^8.1.0",
+    "electron-updater": "^6.1.7"
   },
   "build": {
-    "appId": "com.blackeker.keday",
+    "appId": "com.keday.app",
     "productName": "Keday",
-    "directories": {
-      "output": "dist"
-    },
+    "asar": true,
+    "asarUnpack": [
+      "assets/**/*",
+      "assets/*.gif",
+      "assets/*.png",
+      "assets/*.ico"
+    ],
     "files": [
       "**/*",
+      "assets/**/*",
       "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
       "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
       "!**/node_modules/*.d.ts",
@@ -32,16 +42,11 @@
       "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,.gitignore,.gitattributes}",
       "!**/{__pycache__,thumbs.db,.flowconfig,.idea,.vs,.nyc_output}",
       "!**/{appveyor.yml,.travis.yml,circle.yml}",
-      "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}",
-      "!locales/*.pak",
-      "!locales/*.json"
+      "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}"
     ],
     "win": {
       "target": [
-        {
-          "target": "nsis",
-          "arch": ["x64"]
-        }
+        "nsis"
       ],
       "icon": "assets/icon.ico"
     },
@@ -50,47 +55,7 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Keday",
-      "uninstallDisplayName": "Keday",
-      "artifactName": "${productName}-${version}-${arch}.${ext}",
-      "deleteAppDataOnUninstall": true,
-      "include": "installer.nsh",
-      "uninstallerIcon": "assets/icon.ico",
-      "installerIcon": "assets/icon.ico",
-      "installerHeaderIcon": "assets/icon.ico",
-      "menuCategory": true,
-      "displayLanguageSelector": true,
-      "multiLanguageInstaller": true,
-      "allowElevation": true,
-      "perMachine": false,
-      "differentialPackage": false,
-      "removeDefaultUninstallWelcomePage": true,
-      "installerLanguages": ["tr_TR"]
-    },
-    "publish": {
-      "provider": "github",
-      "owner": "blackeker",
-      "repo": "keday"
-    },
-    "extraResources": [
-      {
-        "from": "assets",
-        "to": "assets",
-        "filter": [
-          "**/*"
-        ]
-      }
-    ],
-    "asar": true,
-    "asarUnpack": [
-      "assets/**/*"
-    ],
-    "compression": "maximum",
-    "removePackageScripts": true,
-    "removePackageKeywords": true
-  },
-  "dependencies": {
-    "electron-store": "^8.1.0",
-    "electron-updater": "^6.1.7"
+      "shortcutName": "Keday"
+    }
   }
 }
