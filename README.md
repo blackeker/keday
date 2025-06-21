@@ -60,7 +60,7 @@ npm run build
 ## Destek
 
 Sorun yaşarsanız veya yardıma ihtiyacınız olursa:
-- Discord Sunucusu: [https://discord.gg/aeris](https://discord.gg/aeris)
+- Discord Sunucusu: [https://discord.gg/hentaitr](https://discord.gg/hentaitr)
 - GitHub Profilim: [https://github.com/blackeker](https://github.com/blackeker)
 - Instagram: [@blackekerr](https://instagram.com/blackekerr)
 - Proje Linki: [https://github.com/blackeker/Keday](https://github.com/blackeker/Keday)
