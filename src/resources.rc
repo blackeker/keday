@@ -1,0 +1,6 @@
+#include "resources.h"
+
+IDI_APP_ICON ICON "assets/icon.ico"
+
+// Manifest file
+1 24 "src/app.manifest"
