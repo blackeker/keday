@@ -1,74 +1,71 @@
 # Keday
 
-Masaüstünüzde fare imlecini takip eden sevimli bir kedi uygulaması.
+Masaüstünüzde fare imlecini takip eden sevimli, native C++ desktop pet uygulaması.
 
-## Açıklama
+---
 
-Keday, klasik Unix terminal uygulaması "Keday"nun modern bir masaüstü versiyonudur. Bu uygulama, masaüstünüzde fare imlecini takip eden sevimli bir kedi karakteri ekler. Kedi, fare imlecinizin hareketlerini takip eder ve farklı durumlarda (koşma, uyuma, tırmalama vb.) farklı animasyonlar gösterir.
+## 🐱 Açıklama
 
-Uygulama, Electron framework'ü kullanılarak geliştirilmiştir ve Windows işletim sisteminde çalışır. Şeffaf bir pencere kullanarak masaüstünüzdeki diğer uygulamaları etkilemeden çalışır. Sistem tepsisinde bir simge ile kolay erişim sağlar ve istediğiniz zaman kediyi gösterip gizleyebilirsiniz.
+Keday, klasik Unix uygulaması "oneko"nun modern ve yüksek performanslı bir Windows sürümüdür. Tamamen **C++ ve Win32 API / GDI+** kullanılarak geliştirilmiştir. 
 
-## Özellikler
+Eski Electron sürümüne kıyasla sıfır CPU gecikmesi ve son derece düşük RAM kullanımı (yaklaşık 2-3 MB) sunarak arka planda sisteminizi hiç yormadan çalışır. Kediniz masaüstünde koşar, fareyi takip eder, kenarlarda tırnaklarını biler ve sıkıldığında kıvrılıp uykuya dalar.
 
-- 🐱 Fare imlecini takip eden sevimli kedi
-- 🖥️ Masaüstünüzde her zaman en üstte kalır
-- 🖱️ Fare tıklamaları kedinin altındaki uygulamalara geçer
-- 🔔 Sistem tepsisinde kolay erişim
-- 👆 Tek tıkla kediyi gösterip gizleyebilme
+---
 
-## Kurulum
+## ✨ Özellikler
 
-### Geliştirici için
+- **Mükemmel Performans:** Native C++ yapısı sayesinde sıfır yük, yüksek FPS.
+- **Gelişmiş Ayarlar Paneli:**
+  - 🐱 **Karakter Seçimi:** Keday (klasik), Kırmızı, Yeşil ve Siyah-Beyaz kedi temaları.
+  - ⚡ **Yürüme Hızı & Boyut:** Kedinizin hızını ve boyutunu (%50 - %300) istediğiniz gibi ayarlayın.
+  - 🎚️ **Şeffaflık:** %10 ile %100 arasında şeffaflık ayarı.
+  - 🪟 **Gölge Efekti:** Kedinin altında gerçek zamanlı yarı şeffaf gölge.
+  - ⚙️ **Çalışma Ayarları:** Her zaman üstte kalma, fareyi takip etme, tam ekranda gizlenme, sistem tepsisine küçülme ve başlangıçta otomatik açılma (Autostart).
+- **Modern Kurulum Sihirbazı:** Eğlenceli ve samimi Türkçe metinlerle süslenmiş kolay kurulum ekranı.
 
-1. Projeyi klonlayın:
-```bash
-git clone https://github.com/blackeker/Keday.git
-cd Keday
-```
+---
 
-2. Bağımlılıkları yükleyin:
-```bash
-npm install
-```
+## 🛠️ Derleme ve Kurulum
 
-3. Uygulamayı başlatın:
-```bash
-npm start
-```
+### Geliştiriciler İçin Derleme
 
-4. Uygulamayı derleyin:
-```bash
-npm run build
-```
+Projeyi yerel makinenizde derlemek için bir C++ derleyicisine (örneğin MinGW-w64 g++) ihtiyacınız vardır.
 
-### Kullanıcı için
+1. **Projeyi indirin:**
+   ```bash
+   git clone https://github.com/blackeker/Keday.git
+   cd Keday
+   ```
 
-1. [Releases](https://github.com/blackeker/Keday/releases) sayfasından en son sürümü indirin
-2. İndirilen `.exe` dosyasını çalıştırın (kurulum gerekmez)
+2. **Uygulamayı derleyin:**
+   `build.bat` dosyasını çalıştırarak kaynak kodları g++ ile otomatik olarak derleyebilirsiniz:
+   ```cmd
+   build.bat
+   ```
+   Derleme tamamlandığında dizinde `Keday.exe` dosyası oluşturulacaktır.
 
-## Kullanım
+### Kurulum Paketini Hazırlama (NSIS)
 
-- Uygulama başladığında masaüstünüzde fare imlecini takip eden bir kedi göreceksiniz
-- Sistem tepsisindeki kedi simgesine tıklayarak kediyi gösterip gizleyebilirsiniz
-- Çıkış yapmak için sistem tepsisindeki simgeye sağ tıklayıp "Çıkış"ı seçin
+Eğlenceli Türkçe arayüze sahip kurulum sihirbazını (`KedaySetup.exe`) paketlemek için:
+1. Bilgisayarınızda **NSIS (Nullsoft Scriptable Install System)** kurulu olmalıdır.
+2. Root dizindeki `setup.nsi` dosyasına sağ tıklayıp **Compile NSIS Script** seçeneğini seçin veya terminalden şu komutu verin:
+   ```cmd
+   makensis setup.nsi
+   ```
+3. Oluşan `KedaySetup.exe` dosyasını çalıştırarak kolayca kurulum yapabilirsiniz.
 
-## Gereksinimler
+---
 
-- Windows 10 veya üzeri
-- Node.js (geliştirme için)
+## 🚀 Kullanım
 
-## Destek
+- Uygulama başladığında kedi fare imlecinizi kovalamaya başlar.
+- Sistem tepsisindeki (Tray) kedi simgesine **sağ tıklayarak** Ayarlar panelini açabilir, kediyi gizleyebilir veya uygulamadan çıkış yapabilirsiniz.
+- Sistem tepsisindeki kedi simgesine **çift tıklayarak** doğrudan Ayarlar ekranına ulaşabilirsiniz.
 
-Sorun yaşarsanız veya yardıma ihtiyacınız olursa:
-- Discord Sunucusu: [https://discord.gg/hentaitr](https://discord.gg/hentaitr)
-- GitHub Profilim: [https://github.com/blackeker](https://github.com/blackeker)
-- Instagram: [@blackekerr](https://instagram.com/blackekerr)
-- Proje Linki: [https://github.com/blackeker/Keday](https://github.com/blackeker/Keday)
+---
 
-## Lisans
+## 🔗 Destek ve İletişim
 
-MIT License
-
-## Ha Bide
-
-### TOPUNUZUN MQ
+- **Discord Sunucusu:** [Discord](https://discord.gg/hentaitr)
+- **Instagram:** [@blackekerr](https://instagram.com/blackekerr)
+- **GitHub:** [blackeker/Keday](https://github.com/blackeker/Keday)
