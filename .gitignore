@@ -1,24 +1,2 @@
-# C++ Build Output
-build/
-
-# Executables & Setup Installers
-Keday.exe
-KedaySetup.exe
-
-# Editor / IDE settings
-.vscode/
-.vs/
-*.suo
-*.user
-*.sln
-*.vcxproj
-*.filters
-.idea/
-
-# Log files
-*.log
-logs/
-
-# Miscellaneous & Temporary Scripts
-mingw64.zip
-gonder.bat
+.DS_Store
+Thumbs.db
