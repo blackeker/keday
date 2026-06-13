@@ -4,7 +4,7 @@
 CXX = g++
 WINDRES = windres
 CXXFLAGS = -O2 -std=c++17 -DUNICODE -D_UNICODE -mwindows
-LDFLAGS = -lgdiplus -lgdi32 -luser32 -lshell32 -lshlwapi -ladvapi32 -lole32 -lcomctl32
+LDFLAGS = -static -lgdiplus -lgdi32 -luser32 -lshell32 -lshlwapi -ladvapi32 -lole32 -lcomctl32
 
 SRC_DIR = src
 BUILD_DIR = build
