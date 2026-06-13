@@ -1,4 +1,4 @@
-﻿Unicode true
+Unicode true
 !include "MUI2.nsh"
 
 Name "Keday"
@@ -66,6 +66,7 @@ Section "Install"
   File "assets\oneko.gif"
   File "assets\icon.ico"
   File "assets\icon.png"
+  File "assets\anime.png"
 
   # Write registry for install dir and uninstall
   WriteRegStr HKCU "Software\Keday" "Install_Dir" "$INSTDIR"
@@ -94,6 +95,7 @@ Section "Uninstall"
   Delete "$INSTDIR\assets\oneko.gif"
   Delete "$INSTDIR\assets\icon.ico"
   Delete "$INSTDIR\assets\icon.png"
+  Delete "$INSTDIR\assets\anime.png"
   Delete "$INSTDIR\uninstall.exe"
   
   RMDir "$INSTDIR\assets"

@@ -29,6 +29,7 @@ void LoadSettings(Settings& settings) {
     settings.showShadow = GetPrivateProfileIntW(L"Settings", L"showShadow", 0, path.c_str()) != 0;
     settings.opacity = GetPrivateProfileIntW(L"Settings", L"opacity", 100, path.c_str());
     settings.followMouse = GetPrivateProfileIntW(L"Settings", L"followMouse", 1, path.c_str()) != 0;
+    settings.isDarkMode = GetPrivateProfileIntW(L"Settings", L"isDarkMode", 1, path.c_str()) != 0;
 }
 
 void SaveSettings(const Settings& settings) {
@@ -43,6 +44,7 @@ void SaveSettings(const Settings& settings) {
     WritePrivateProfileStringW(L"Settings", L"showShadow", std::to_wstring(settings.showShadow ? 1 : 0).c_str(), path.c_str());
     WritePrivateProfileStringW(L"Settings", L"opacity", std::to_wstring(settings.opacity).c_str(), path.c_str());
     WritePrivateProfileStringW(L"Settings", L"followMouse", std::to_wstring(settings.followMouse ? 1 : 0).c_str(), path.c_str());
+    WritePrivateProfileStringW(L"Settings", L"isDarkMode", std::to_wstring(settings.isDarkMode ? 1 : 0).c_str(), path.c_str());
 }
 
 void SetAutoStart(bool enable) {

@@ -67,10 +67,40 @@ if %ERRORLEVEL% NEQ 0 (
 )
 
 echo.
-echo ====================================
-echo   Keday.exe basariyla derlendi!
-echo ====================================
+echo [5/5] Installer paketi olusturuluyor (KedaySetup.exe)...
+
+:: Try to find makensis
+set "MAKENSIS_CMD="
+where makensis >nul 2>&1
+if %ERRORLEVEL% EQU 0 set "MAKENSIS_CMD=makensis"
+if exist "C:\Program Files (x86)\NSIS\makensis.exe" set "MAKENSIS_CMD=C:\Program Files (x86)\NSIS\makensis.exe"
+if "%MAKENSIS_CMD%"=="" if exist "C:\Program Files\NSIS\makensis.exe" set "MAKENSIS_CMD=C:\Program Files\NSIS\makensis.exe"
+
+if "%MAKENSIS_CMD%"=="" (
+    echo [UYARI] makensis.exe bulunamadi!
+    echo KedaySetup.exe olusturulamadi. NSIS yuklemek icin: winget install NSIS.NSIS
+    goto build_end
+)
+
+if "%MAKENSIS_CMD%"=="makensis" (
+    makensis setup.nsi
+) else (
+    "%MAKENSIS_CMD%" setup.nsi
+)
+
+if %ERRORLEVEL% NEQ 0 (
+    echo [HATA] Installer olusturma basarisiz!
+    pause
+    exit /b 1
+)
+echo [INFO] KedaySetup.exe basariyla olusturuldu!
+
+:build_end
+
+echo.
+echo ===============================================
+echo   Keday.exe ve KedaySetup.exe basariyla derlendi!
+echo ===============================================
 echo.
 echo Calistirmak icin: Keday.exe
 echo.
-pause

@@ -14,6 +14,7 @@ struct Settings {
     bool showShadow;
     int opacity;
     bool followMouse;
+    bool isDarkMode;
 };
 
 void LoadSettings(Settings& settings);
