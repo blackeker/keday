@@ -1,6 +1,37 @@
 #include "resources.h"
+#include <winver.h>
 
 IDI_APP_ICON ICON "assets/icon.ico"
 
 // Manifest file
 1 24 "src/app.manifest"
+
+// Version Information
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION     1,2,0,0
+PRODUCTVERSION  1,2,0,0
+FILEFLAGSMASK   VS_FFI_FILEFLAGSMASK
+FILEFLAGS       0
+FILEOS          VOS__WINDOWS32
+FILETYPE        VFT_APP
+FILESUBTYPE     VFT2_UNKNOWN
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904B0" // U.S. English, Unicode
+        BEGIN
+            VALUE "CompanyName",      "Keday Desktop Pet"
+            VALUE "FileDescription",  "Keday - Masaüstü Yazılımcı Kedisi"
+            VALUE "FileVersion",      "1.2.0.0"
+            VALUE "InternalName",     "Keday"
+            VALUE "LegalCopyright",   "Copyright © 2026 Keday. All rights reserved."
+            VALUE "OriginalFilename", "Keday.exe"
+            VALUE "ProductName",      "Keday"
+            VALUE "ProductVersion",   "1.2.0.0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END

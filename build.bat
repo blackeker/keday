@@ -59,7 +59,7 @@ if %ERRORLEVEL% NEQ 0 (
 )
 
 echo [4/4] Baglaniyor (linking)...
-g++ -O2 -std=c++17 -DUNICODE -D_UNICODE -mwindows -static -o Keday.exe build/main.o build/settings.o build/settings_window.o build/resources.o -lgdiplus -lgdi32 -luser32 -lshell32 -lshlwapi -ladvapi32 -lole32 -lcomctl32
+g++ -O2 -std=c++17 -DUNICODE -D_UNICODE -mwindows -static -o Keday.exe build/main.o build/settings.o build/settings_window.o build/resources.o -lgdiplus -lgdi32 -luser32 -lshell32 -lshlwapi -ladvapi32 -lole32 -lcomctl32 -lwinmm
 if %ERRORLEVEL% NEQ 0 (
     echo [HATA] Baglama basarisiz!
     pause

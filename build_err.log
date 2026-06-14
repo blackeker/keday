@@ -1,0 +1,8 @@
+src\main.cpp: In function 'void LoadCharacterSprite(const std::wstring&)':
+src\main.cpp:184:95: error: 'idx' was not declared in this scope
+  184 |         std::wstring path = baseDir + L"\\assets\\" + characterName + L"\\" + std::to_wstring(idx) + L".png";
+      |                                                                                               ^~~
+src\main.cpp: At global scope:
+src\main.cpp:196:1: error: expected declaration before '}' token
+  196 | }
+      | ^

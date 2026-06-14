@@ -1,3 +1,10 @@
+#ifndef WINVER
+#define WINVER 0x0600
+#endif
+#ifndef _WIN32_WINNT
+#define _WIN32_WINNT 0x0600
+#endif
+
 #include <windows.h>
 #include <windowsx.h>
 #include <gdiplus.h>
@@ -8,6 +15,8 @@
 #include <thread>
 #include <atomic>
 #include <ctime>
+#include <mmdeviceapi.h>
+#include <endpointvolume.h>
 #include "settings.h"
 #include "settings_window.h"
 #include "resources.h"
@@ -17,8 +26,32 @@
 #pragma comment(lib, "gdiplus.lib")
 #pragma comment(lib, "shell32.lib")
 #pragma comment(lib, "shlwapi.lib")
+#pragma comment(lib, "ole32.lib")
 
 using namespace Gdiplus;
+
+// Forward Declarations
+void DrawAccessory(Graphics& g, int x, int y, int size, int type);
+const double M_PI = 3.14159265358979323846;
+
+// Define IAudioMeterInformation if not defined or incomplete in MinGW headers
+#ifndef __IAudioMeterInformation_INTERFACE_DEFINED__
+#define __IAudioMeterInformation_INTERFACE_DEFINED__
+DEFINE_GUID(IID_IAudioMeterInformation, 0xC02216C6, 0x8C67, 0x4B5B, 0x9D, 0x00, 0xD0, 0x08, 0xE7, 0x3E, 0x00, 0x64);
+interface DECLSPEC_UUID("C02216C6-8C67-4B5B-9D00-D008E73E0064") IAudioMeterInformation : public IUnknown
+{
+public:
+    virtual HRESULT STDMETHODCALLTYPE GetPeakValue(float *pfPeak) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetMeteringChannelCount(UINT *pnChannelCount) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetChannelsPeakValues(UINT32 u32ChannelCount, float *afPeakValues) = 0;
+    virtual HRESULT STDMETHODCALLTYPE QueryHardwareSupport(DWORD *pdwHardwareSupportMask) = 0;
+};
+#ifdef __CRT_UUID_DECL
+__CRT_UUID_DECL(IAudioMeterInformation, 0xC02216C6, 0x8C67, 0x4B5B, 0x9D, 0x00, 0xD0, 0x08, 0xE7, 0x3E, 0x00, 0x64)
+#endif
+#endif
+
+
 
 // Constants and Macros
 #define WM_TRAY_ICON (WM_USER + 1)
@@ -46,7 +79,11 @@ enum NekoState {
     STATE_S,
     STATE_SW,
     STATE_W,
-    STATE_NW
+    STATE_NW,
+    STATE_EXPECT_FOOD,
+    STATE_EATING,
+    STATE_CODING,
+    STATE_BOX
 };
 
 struct Frame {
@@ -77,14 +114,18 @@ const Animation spriteSets[] = {
     { { {6, 3}, {7, 2} }, 2 }, // STATE_S
     { { {5, 3}, {6, 1} }, 2 }, // STATE_SW
     { { {4, 2}, {4, 3} }, 2 }, // STATE_W
-    { { {1, 0}, {1, 1} }, 2 }  // STATE_NW
+    { { {1, 0}, {1, 1} }, 2 }, // STATE_NW
+    { { {0, 4} }, 1 }, // STATE_EXPECT_FOOD
+    { { {1, 4}, {2, 4}, {3, 4}, {4, 4} }, 4 }, // STATE_EATING
+    { { {0, 5}, {1, 5}, {2, 5}, {3, 5} }, 4 }, // STATE_CODING
+    { { {4, 5}, {5, 5}, {6, 5}, {7, 5} }, 4 }  // STATE_BOX
 };
 
 // Global Variables
 HINSTANCE g_hInstance = NULL;
 HWND g_hMainWnd = NULL;
 Settings g_settings;
-Bitmap* g_pSpriteBitmap = nullptr;
+Bitmap* g_pSpriteFrames[48] = { nullptr };
 bool g_bVisible = true;
 std::wstring g_lastLoadedChar = L"";
 std::atomic<bool> g_soundPlaying{false};
@@ -113,6 +154,7 @@ struct HeartParticle {
     double x, y;
     double vx, vy;
     int life;
+    wchar_t symbol = L'♥';
 };
 std::vector<HeartParticle> g_particles;
 
@@ -168,28 +210,31 @@ std::wstring GetExeDir() {
     return dir;
 }
 
-// Loads character sprite sheet
+// Loads character sprites from individual folder frames
 void LoadCharacterSprite(const std::wstring& characterName) {
-    if (g_pSpriteBitmap) {
-        delete g_pSpriteBitmap;
-        g_pSpriteBitmap = nullptr;
+    int k = 0;
+    // Clean up old frames
+    for (k = 0; k < 48; ++k) {
+        if (g_pSpriteFrames[k]) {
+            delete g_pSpriteFrames[k];
+            g_pSpriteFrames[k] = nullptr;
+        }
     }
+    
     std::wstring baseDir = GetExeDir();
-    std::wstring path = baseDir + L"\\assets\\" + characterName + L".gif";
-    g_pSpriteBitmap = Bitmap::FromFile(path.c_str());
-    if (!g_pSpriteBitmap || g_pSpriteBitmap->GetLastStatus() != Ok) {
-        if (g_pSpriteBitmap) {
-            delete g_pSpriteBitmap;
+    // Path to the character's folder: assets/<characterName>
+    for (k = 0; k < 48; ++k) {
+        std::wstring path = baseDir + L"\\assets\\" + characterName + L"\\" + std::to_wstring(k) + L".png";
+        g_pSpriteFrames[k] = Bitmap::FromFile(path.c_str());
+        
+        // Fallback: If not found, try falling back to oneko directory
+        if (!g_pSpriteFrames[k] || g_pSpriteFrames[k]->GetLastStatus() != Ok) {
+            if (g_pSpriteFrames[k]) {
+                delete g_pSpriteFrames[k];
+            }
+            std::wstring fallbackPath = baseDir + L"\\assets\\oneko\\" + std::to_wstring(k) + L".png";
+            g_pSpriteFrames[k] = Bitmap::FromFile(fallbackPath.c_str());
         }
-        path = baseDir + L"\\assets\\" + characterName + L".png";
-        g_pSpriteBitmap = Bitmap::FromFile(path.c_str());
-    }
-    if (!g_pSpriteBitmap || g_pSpriteBitmap->GetLastStatus() != Ok) {
-        if (g_pSpriteBitmap) {
-            delete g_pSpriteBitmap;
-        }
-        std::wstring fallback = baseDir + L"\\assets\\oneko.gif";
-        g_pSpriteBitmap = Bitmap::FromFile(fallback.c_str());
     }
 }
 
@@ -207,6 +252,20 @@ void ApplyWindowSettings() {
     HWND insertAfter = g_settings.alwaysOnTop ? HWND_TOPMOST : HWND_NOTOPMOST;
     SetWindowPos(g_hMainWnd, insertAfter, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 
+    // Click through initial style
+    LONG_PTR exStyle = GetWindowLongPtrW(g_hMainWnd, GWL_EXSTYLE);
+    if (g_settings.clickThrough) {
+        if (!(GetAsyncKeyState(VK_CONTROL) & 0x8000)) {
+            exStyle |= WS_EX_TRANSPARENT;
+        } else {
+            exStyle &= ~WS_EX_TRANSPARENT;
+        }
+    } else {
+        exStyle &= ~WS_EX_TRANSPARENT;
+    }
+    SetWindowLongPtrW(g_hMainWnd, GWL_EXSTYLE, exStyle);
+    SetWindowPos(g_hMainWnd, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
+
     // Update timer based on speed
     int interval = 250 - (g_settings.speed * 6);
     if (interval < 50) interval = 50;
@@ -215,96 +274,12 @@ void ApplyWindowSettings() {
 
 // Map the animation state to coordinates on the sprite sheet depending on character choice
 Frame GetCharacterFrame(NekoState state, int frameIndex, const std::wstring& character) {
-    if (character == L"anime") {
-        // Custom mapping for the anime chibi layout (8x8 grid)
-        // Rows: 0: Down, 1: Right, 2: Left, 3: Up
-        // Rows 4-7: Extra Actions/Alt sprites
-        // Columns: 0, 1, 2, 3 for walking; 4, 5, 6, 7 for actions
-        switch (state) {
-            case STATE_IDLE:
-                return { 4, 0 }; // Sitting/Idle pose down
-            case STATE_ALERT:
-                return { 5, 0 }; // Surprised/Alert pose
-            case STATE_SCRATCH_SELF: {
-                int col = 4 + (frameIndex % 4);
-                return { col, 0 }; // Scratching/Wiggling poses
-            }
-            case STATE_SCRATCH_WALL_N: return { 5, 3 };
-            case STATE_SCRATCH_WALL_S: return { 5, 0 };
-            case STATE_SCRATCH_WALL_E: return { 5, 1 };
-            case STATE_SCRATCH_WALL_W: return { 5, 2 };
-            case STATE_TIRED:
-                return { 4, 1 }; // Sitting down side
-            case STATE_SLEEPING: {
-                int col = 4 + (frameIndex % 4);
-                return { col, 1 }; // Sleep/lying poses on row 1
-            }
-            // Walking Up
-            case STATE_N: {
-                int col = frameIndex % 4;
-                return { col, 3 };
-            }
-            // Diagonal walking Up-East/West
-            case STATE_NE: {
-                int col = frameIndex % 4;
-                return { col, 1 }; // Walk Right (Row 1)
-            }
-            case STATE_NW: {
-                int col = frameIndex % 4;
-                return { col, 2 }; // Walk Left (Row 2)
-            }
-            // Walking Down
-            case STATE_S: {
-                int col = frameIndex % 4;
-                return { col, 0 };
-            }
-            // Diagonal walking Down-East/West
-            case STATE_SE: {
-                int col = frameIndex % 4;
-                return { col, 1 }; // Walk Right (Row 1)
-            }
-            case STATE_SW: {
-                int col = frameIndex % 4;
-                return { col, 2 }; // Walk Left (Row 2)
-            }
-            // Walking East (Right)
-            case STATE_E: {
-                int col = frameIndex % 4;
-                return { col, 1 }; // Row 1 is Right-walking
-            }
-            // Walking West (Left)
-            case STATE_W: {
-                int col = frameIndex % 4;
-                return { col, 2 }; // Row 2 is Left-walking
-            }
-            default:
-                return { 0, 0 };
-        }
-    } else {
-        const Animation& anim = spriteSets[state];
-        return anim.frames[frameIndex % anim.frameCount];
-    }
+    const Animation& anim = spriteSets[state];
+    return anim.frames[frameIndex % anim.frameCount];
 }
 
 int GetCharacterFrameCount(NekoState state, const std::wstring& character) {
-    if (character == L"anime") {
-        switch (state) {
-            case STATE_SCRATCH_SELF: return 4;
-            case STATE_SLEEPING: return 4;
-            case STATE_IDLE:
-            case STATE_ALERT:
-            case STATE_TIRED:
-            case STATE_SCRATCH_WALL_N:
-            case STATE_SCRATCH_WALL_S:
-            case STATE_SCRATCH_WALL_E:
-            case STATE_SCRATCH_WALL_W:
-                return 1;
-            default:
-                return 4; // 4 walking animation frames
-        }
-    } else {
-        return spriteSets[state].frameCount;
-    }
+    return spriteSets[state].frameCount;
 }
 
 // Redraw / Update Layered Window
@@ -354,23 +329,12 @@ void UpdateNekoWindow() {
     
     g.SetCompositingMode(CompositingModeSourceOver);
 
-    int spriteW = 32;
-    int spriteH = 32;
-    if (g_pSpriteBitmap && g_pSpriteBitmap->GetLastStatus() == Ok) {
-        spriteW = g_pSpriteBitmap->GetWidth() / 8;
-        if (g_settings.character == L"anime") {
-            spriteH = g_pSpriteBitmap->GetHeight() / 8;
-        } else {
-            spriteH = g_pSpriteBitmap->GetHeight() / 4;
-        }
-    }
-
     // Get current animation frame
     Frame frame = GetCharacterFrame(g_currentState, g_currentFrameIndex, g_settings.character);
-    int srcX = frame.col * spriteW;
-    int srcY = frame.row * spriteH;
+    int frameIdx = frame.row * 8 + frame.col;
 
-    if (g_pSpriteBitmap && g_pSpriteBitmap->GetLastStatus() == Ok) {
+    if (frameIdx >= 0 && frameIdx < 48 && g_pSpriteFrames[frameIdx] && g_pSpriteFrames[frameIdx]->GetLastStatus() == Ok) {
+        Bitmap* pBmp = g_pSpriteFrames[frameIdx];
         // Draw Shadow first
         if (g_settings.showShadow) {
             ImageAttributes shadowAttr;
@@ -382,11 +346,27 @@ void UpdateNekoWindow() {
                 0.0f, 0.0f, 0.0f, 0.0f, 1.0f
             };
             shadowAttr.SetColorMatrix(&matrix, ColorMatrixFlagsDefault, ColorAdjustTypeBitmap);
-            g.DrawImage(g_pSpriteBitmap, Rect(extraSide + shadowOffset, extraTop + shadowOffset, catSize, catSize), srcX, srcY, spriteW, spriteH, UnitPixel, &shadowAttr);
+            g.DrawImage(pBmp, Rect(extraSide + shadowOffset, extraTop + shadowOffset, catSize, catSize), 0, 0, pBmp->GetWidth(), pBmp->GetHeight(), UnitPixel, &shadowAttr);
         }
 
-        // Draw Cat
-        g.DrawImage(g_pSpriteBitmap, Rect(extraSide, extraTop, catSize, catSize), srcX, srcY, spriteW, spriteH, UnitPixel);
+        // Draw Cat (supporting toss-and-spin rotation)
+        if (g_isFalling && (std::abs(g_velocityX) > 2.0 || std::abs(g_velocityY) > 2.0)) {
+            static float angle = 0.0f;
+            angle += (float)(g_velocityX * 1.5);
+            g.TranslateTransform(extraSide + catSize / 2.0f, extraTop + catSize / 2.0f);
+            g.RotateTransform(angle);
+            g.DrawImage(pBmp, Rect(-catSize / 2, -catSize / 2, catSize, catSize), 0, 0, pBmp->GetWidth(), pBmp->GetHeight(), UnitPixel);
+            g.ResetTransform();
+            
+            // Draw accessory rotated with the cat
+            g.TranslateTransform(extraSide + catSize / 2.0f, extraTop + catSize / 2.0f);
+            g.RotateTransform(angle);
+            DrawAccessory(g, -catSize / 2, -catSize / 2, catSize, g_settings.accessory);
+            g.ResetTransform();
+        } else {
+            g.DrawImage(pBmp, Rect(extraSide, extraTop, catSize, catSize), 0, 0, pBmp->GetWidth(), pBmp->GetHeight(), UnitPixel);
+            DrawAccessory(g, extraSide, extraTop, catSize, g_settings.accessory);
+        }
     }
 
     // Draw Falling Fish
@@ -396,12 +376,20 @@ void UpdateNekoWindow() {
         g.DrawString(L"🐟", -1, &fishFont, PointF((float)(g_fishX + extraSide), (float)g_fishY), &fishBrush);
     }
 
-    // Draw Particles
+    // Draw Particles (Hearts and Zzz)
     if (!g_particles.empty()) {
-        SolidBrush heartBrush(Color(255, 255, 80, 120));
-        Font heartFont(L"Segoe UI Emoji", 10, FontStyleRegular);
+        Font particleFont(L"Segoe UI Emoji", 9, FontStyleBold);
         for (const auto& p : g_particles) {
-            g.DrawString(L"♥", -1, &heartFont, PointF((float)(p.x + extraSide), (float)p.y), &heartBrush);
+            if (p.symbol == 'Z') {
+                SolidBrush zBrush(Color(255, 130, 180, 255));
+                Font zFont(L"Segoe UI", (REAL)(6 + (p.life % 4)), FontStyleBold);
+                wchar_t str[2] = { p.symbol, L'\0' };
+                g.DrawString(str, -1, &zFont, PointF((float)(p.x + extraSide), (float)p.y), &zBrush);
+            } else {
+                SolidBrush heartBrush(Color(255, 255, 80, 120));
+                wchar_t str[2] = { p.symbol, L'\0' };
+                g.DrawString(str, -1, &particleFont, PointF((float)(p.x + extraSide), (float)p.y), &heartBrush);
+            }
         }
     }
 
@@ -476,31 +464,152 @@ bool IsSpanningWindowLedge(int x, int y, double velocityY, int catSize, int& out
     return false;
 }
 
-// Play an 8-bit meow sound asynchronously on a background thread
-void PlayMeowAsync() {
+#include <vector>
+#define _USE_MATH_DEFINES
+#include <math.h>
+
+int g_happinessLevel = 80;
+
+// Play a dynamically generated PCM sine wave sound in memory with precise volume control
+void PlaySoundWave(double frequency, int durationMs, int volumePercent) {
+    if (volumePercent <= 0) return;
+    int sampleRate = 22050;
+    int numSamples = (sampleRate * durationMs) / 1000;
+    
+    struct WAVHeader {
+        char chunkID[4] = {'R', 'I', 'F', 'F'};
+        int chunkSize;
+        char format[4] = {'W', 'A', 'V', 'E'};
+        char subchunk1ID[4] = {'f', 'm', 't', ' '};
+        int subchunk1Size = 16;
+        short audioFormat = 1; // PCM
+        short numChannels = 1; // Mono
+        int sampleRate;
+        int byteRate;
+        short blockAlign = 1;
+        short bitsPerSample = 8;
+        char subchunk2ID[4] = {'d', 'a', 't', 'a'};
+        int subchunk2Size;
+    } header;
+    
+    header.sampleRate = sampleRate;
+    header.byteRate = sampleRate;
+    header.subchunk2Size = numSamples;
+    header.chunkSize = 36 + numSamples;
+    
+    std::vector<char> wavData(sizeof(WAVHeader) + numSamples);
+    double amplitude = (volumePercent / 100.0) * 127.0;
+    char* pData = wavData.data() + sizeof(WAVHeader);
+    
+    for (int i = 0; i < numSamples; ++i) {
+        double t = (double)i / sampleRate;
+        double angle = 2.0 * M_PI * frequency * t;
+        pData[i] = (char)(128 + amplitude * sin(angle));
+    }
+    
+    memcpy(wavData.data(), &header, sizeof(WAVHeader));
+    
+    std::thread([data = std::move(wavData)]() {
+        PlaySoundW((LPCWSTR)data.data(), NULL, SND_MEMORY | SND_SYNC | SND_NODEFAULT);
+    }).detach();
+}
+
+// Play character specific sounds asynchronously on a background thread
+void PlayCharacterSoundAsync(const std::wstring& character, int volume) {
     if (g_soundPlaying.exchange(true)) return;
-    std::thread([]() {
-        Beep(650, 45);
-        Beep(850, 50);
-        Beep(1100, 110);
+    std::thread([character, volume]() {
+        if (character == L"dog") {
+            PlaySoundWave(200.0, 70, volume);
+            Sleep(80);
+            PlaySoundWave(230.0, 90, volume);
+        } else if (character == L"sakura" || character == L"tomoyo") {
+            PlaySoundWave(980.0, 50, volume);
+            Sleep(60);
+            PlaySoundWave(1300.0, 80, volume);
+        } else if (character == L"bsd") {
+            PlaySoundWave(400.0, 40, volume);
+            Sleep(50);
+            PlaySoundWave(600.0, 40, volume);
+            Sleep(50);
+            PlaySoundWave(800.0, 60, volume);
+        } else {
+            PlaySoundWave(650.0, 50, volume);
+            Sleep(60);
+            PlaySoundWave(850.0, 60, volume);
+            Sleep(70);
+            PlaySoundWave(1100.0, 120, volume);
+        }
         g_soundPlaying = false;
     }).detach();
+}
+
+// Play an 8-bit meow sound asynchronously on a background thread
+void PlayMeowAsync() {
+    PlayCharacterSoundAsync(g_settings.character, g_settings.volume);
 }
 
 // Play an 8-bit purr sound asynchronously on a background thread
 void PlayPurrAsync() {
     if (g_soundPlaying.exchange(true)) return;
-    std::thread([]() {
+    int vol = g_settings.volume;
+    std::thread([vol]() {
         for (int i = 0; i < 3; ++i) {
-            Beep(160, 35);
+            PlaySoundWave(160.0, 35, vol);
             Sleep(90);
         }
         g_soundPlaying = false;
     }).detach();
 }
 
+// Draw scaled procedurally rendered accessories on top of Keday
+void DrawAccessory(Graphics& g, int x, int y, int size, int type) {
+    if (type <= 0) return;
+    int offsetHeadY = 0;
+    if (g_currentState == STATE_SLEEPING) {
+        offsetHeadY = size / 6;
+    }
+    if (type == 1) {
+        // Glasses
+        Pen glassesPen(Color(255, 0, 0, 0), size / 20.0f);
+        g.DrawRectangle(&glassesPen, x + (int)(size * 0.32), y + (int)(size * 0.38) + offsetHeadY, (int)(size * 0.16), (int)(size * 0.12));
+        g.DrawRectangle(&glassesPen, x + (int)(size * 0.52), y + (int)(size * 0.38) + offsetHeadY, (int)(size * 0.16), (int)(size * 0.12));
+        g.DrawLine(&glassesPen, x + (int)(size * 0.48), y + (int)(size * 0.44) + offsetHeadY, x + (int)(size * 0.52), y + (int)(size * 0.44) + offsetHeadY);
+    } 
+    else if (type == 2) {
+        // Santa Hat
+        SolidBrush redBrush(Color(255, 230, 40, 40));
+        SolidBrush whiteBrush(Color(255, 245, 245, 245));
+        Point points[] = {
+            Point(x + (int)(size * 0.35), y + (int)(size * 0.22) + offsetHeadY),
+            Point(x + (int)(size * 0.65), y + (int)(size * 0.22) + offsetHeadY),
+            Point(x + (int)(size * 0.50), y + (int)(size * 0.04) + offsetHeadY)
+        };
+        g.FillPolygon(&redBrush, points, 3);
+        g.FillRectangle(&whiteBrush, x + (int)(size * 0.30), y + (int)(size * 0.20) + offsetHeadY, (int)(size * 0.40), (int)(size * 0.06));
+        g.FillEllipse(&whiteBrush, x + (int)(size * 0.46), y + (int)(size * 0.01) + offsetHeadY, (int)(size * 0.08), (int)(size * 0.08));
+    } 
+    else if (type == 3) {
+        // Bow Tie
+        SolidBrush redBrush(Color(255, 220, 20, 60));
+        SolidBrush centerBrush(Color(255, 150, 10, 40));
+        Point leftWing[] = {
+            Point(x + (int)(size * 0.38), y + (int)(size * 0.56) + offsetHeadY),
+            Point(x + (int)(size * 0.38), y + (int)(size * 0.68) + offsetHeadY),
+            Point(x + (int)(size * 0.50), y + (int)(size * 0.62) + offsetHeadY)
+        };
+        g.FillPolygon(&redBrush, leftWing, 3);
+        Point rightWing[] = {
+            Point(x + (int)(size * 0.62), y + (int)(size * 0.56) + offsetHeadY),
+            Point(x + (int)(size * 0.62), y + (int)(size * 0.68) + offsetHeadY),
+            Point(x + (int)(size * 0.50), y + (int)(size * 0.62) + offsetHeadY)
+        };
+        g.FillPolygon(&redBrush, rightWing, 3);
+        g.FillEllipse(&centerBrush, x + (int)(size * 0.47), y + (int)(size * 0.59) + offsetHeadY, (int)(size * 0.06), (int)(size * 0.06));
+    }
+}
+
 // Spawn heart particles above Keday
-void SpawnHearts(double startX, double startY, int count) {
+void SpawnHearts(double startX, double startY, int count, wchar_t symbol = L'♥') {
     for (int i = 0; i < count; ++i) {
         HeartParticle p;
         p.x = startX + (rand() % 24 - 12);
@@ -508,12 +617,73 @@ void SpawnHearts(double startX, double startY, int count) {
         p.vx = (rand() % 100 - 50) / 100.0;
         p.vy = -(rand() % 100 + 50) / 50.0;
         p.life = 12 + rand() % 8;
+        p.symbol = symbol;
         g_particles.push_back(p);
     }
 }
 
+void GetNekoMonitorBounds(int x, int y, RECT& rect) {
+    POINT pt = { x, y };
+    HMONITOR hMon = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
+    MONITORINFO mi = { sizeof(MONITORINFO) };
+    if (GetMonitorInfoW(hMon, &mi)) {
+        rect = mi.rcWork;
+    } else {
+        rect.left = 0;
+        rect.top = 0;
+        rect.right = GetSystemMetrics(SM_CXSCREEN);
+        rect.bottom = GetSystemMetrics(SM_CYSCREEN);
+    }
+}
+
+float GetSystemAudioPeakVolume() {
+    float peak = 0.0f;
+    IMMDeviceEnumerator* pEnumerator = NULL;
+    HRESULT hr = CoCreateInstance(__uuidof(MMDeviceEnumerator), NULL, CLSCTX_ALL, __uuidof(IMMDeviceEnumerator), (void**)&pEnumerator);
+    if (SUCCEEDED(hr)) {
+        IMMDevice* pDevice = NULL;
+        hr = pEnumerator->GetDefaultAudioEndpoint(eRender, eMultimedia, &pDevice);
+        if (SUCCEEDED(hr)) {
+            IAudioMeterInformation* pMeter = NULL;
+            hr = pDevice->Activate(__uuidof(IAudioMeterInformation), CLSCTX_ALL, NULL, (void**)&pMeter);
+            if (SUCCEEDED(hr)) {
+                pMeter->GetPeakValue(&peak);
+                pMeter->Release();
+            }
+            pDevice->Release();
+        }
+        pEnumerator->Release();
+    }
+    return peak;
+}
+
 // State Machine Update
-void UpdateNekoLogic() {
+bool UpdateNekoLogic() {
+    // Dynamic click-through handling based on Ctrl key
+    if (g_hMainWnd) {
+        LONG_PTR exStyle = GetWindowLongPtrW(g_hMainWnd, GWL_EXSTYLE);
+        LONG_PTR newStyle = exStyle;
+        if (g_settings.clickThrough) {
+            if (GetAsyncKeyState(VK_CONTROL) & 0x8000) {
+                newStyle &= ~WS_EX_TRANSPARENT;
+            } else {
+                newStyle |= WS_EX_TRANSPARENT;
+            }
+        } else {
+            newStyle &= ~WS_EX_TRANSPARENT;
+        }
+        if (newStyle != exStyle) {
+            SetWindowLongPtrW(g_hMainWnd, GWL_EXSTYLE, newStyle);
+            SetWindowPos(g_hMainWnd, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
+        }
+    }
+
+    double oldX = g_nekoX;
+    double oldY = g_nekoY;
+    NekoState oldState = g_currentState;
+    int oldFrameIndex = g_currentFrameIndex;
+    size_t oldParticleCount = g_particles.size();
+
     POINT mousePos;
     GetCursorPos(&mousePos);
 
@@ -534,9 +704,11 @@ void UpdateNekoLogic() {
     // Lock cat animation when eating/licking paws after food
     if (g_feedTicks > 0) {
         g_feedTicks--;
-        g_currentState = STATE_SCRATCH_SELF;
+        if (g_currentState != STATE_EATING) {
+            g_currentState = STATE_SCRATCH_SELF;
+        }
         g_currentFrameIndex = (g_currentFrameIndex + 1) % GetCharacterFrameCount(g_currentState, g_settings.character);
-        return;
+        return true;
     }
 
     // Handle falling food
@@ -545,16 +717,16 @@ void UpdateNekoLogic() {
         if (g_fishY >= 35.0) {
             PlayMeowAsync();
             g_isFeeding = false;
-            g_feedTicks = 16; // lick paws for 16 ticks
-            g_currentState = STATE_SCRATCH_SELF;
+            g_feedTicks = 20; // 20 ticks of eating animation (5 loops of 4 frames)
+            g_currentState = STATE_EATING;
             g_currentFrameIndex = 0;
             // Spawn happy hearts at the top of the cat's head
             SpawnHearts(catSize / 2.0, 30.0, 12);
         } else {
-            g_currentState = STATE_ALERT; // look up expectantly
+            g_currentState = STATE_EXPECT_FOOD; // look up expectantly (frame 32)
             g_currentFrameIndex = 0;
         }
-        return;
+        return true;
     }
 
     if (g_isDragging) {
@@ -573,7 +745,7 @@ void UpdateNekoLogic() {
         // Visual while dragging
         g_currentState = STATE_ALERT;
         g_currentFrameIndex = (g_currentFrameIndex + 1) % GetCharacterFrameCount(g_currentState, g_settings.character);
-        return;
+        return true;
     }
 
     if (g_isFalling) {
@@ -585,18 +757,23 @@ void UpdateNekoLogic() {
 
         g_velocityX *= 0.98; // Air resistance
 
-        int screenWidth = GetSystemMetrics(SM_CXSCREEN);
-        int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+        RECT rWork;
+        GetNekoMonitorBounds((int)g_nekoX, (int)g_nekoY, rWork);
+
+        int screenLeft = rWork.left;
+        int screenTop = rWork.top;
+        int screenWidth = rWork.right;
+        int screenHeight = rWork.bottom;
 
         // Ceiling collision
-        if (g_nekoY < 0) {
-            g_nekoY = 0;
+        if (g_nekoY < screenTop) {
+            g_nekoY = screenTop;
             g_velocityY = 0;
         }
 
         // Wall collisions
-        if (g_nekoX < 0) {
-            g_nekoX = 0;
+        if (g_nekoX < screenLeft) {
+            g_nekoX = screenLeft;
             g_velocityX = -g_velocityX * 0.5;
         }
         if (g_nekoX > screenWidth - catSize) {
@@ -642,11 +819,13 @@ void UpdateNekoLogic() {
         
         // Update window position during fall
         SetWindowPos(g_hMainWnd, NULL, (int)g_nekoX, (int)g_nekoY, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
-        return;
+        return true;
     }
 
     // If not dragging/falling and we are in mid-air, start falling (only if not following mouse)
-    int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+    RECT rWork;
+    GetNekoMonitorBounds((int)g_nekoX, (int)g_nekoY, rWork);
+    int screenHeight = rWork.bottom;
     int tempLedgeY = 0;
     bool onLedge = IsStandingOnWindowLedge((int)g_nekoX, (int)g_nekoY, catSize, tempLedgeY);
     if (!g_settings.followMouse && g_nekoY < screenHeight - catSize && !onLedge) {
@@ -723,21 +902,34 @@ void UpdateNekoLogic() {
             g_currentFrameIndex = 0;
         }
 
-        if (g_idleTicks > 40) {
+        if (g_idleTicks > 120) {
+            // AFK: Sleep, Code or Box
+            if (g_currentState != STATE_SLEEPING && g_currentState != STATE_CODING && g_currentState != STATE_BOX) {
+                int r = rand() % 3;
+                if (r == 0) {
+                    g_currentState = STATE_SLEEPING;
+                } else if (r == 1) {
+                    g_currentState = STATE_CODING;
+                } else {
+                    g_currentState = STATE_BOX;
+                }
+                g_currentFrameIndex = 0;
+            }
+        } else if (g_idleTicks > 40) {
             // Yawn, then sleep
-            if (g_currentState != STATE_SLEEPING) {
+            if (g_currentState != STATE_SLEEPING && g_currentState != STATE_CODING && g_currentState != STATE_BOX) {
                 g_currentState = STATE_SLEEPING;
                 g_currentFrameIndex = 0;
             }
         } else if (g_idleTicks > 25) {
             // Tired
-            if (g_currentState != STATE_TIRED) {
+            if (g_currentState != STATE_TIRED && g_currentState != STATE_CODING && g_currentState != STATE_BOX) {
                 g_currentState = STATE_TIRED;
                 g_currentFrameIndex = 0;
             }
         } else if (g_idleTicks > 12) {
             // Random scratch or perked ears (alert)
-            if (g_currentState != STATE_ALERT && g_currentState != STATE_SCRATCH_SELF) {
+            if (g_currentState != STATE_ALERT && g_currentState != STATE_SCRATCH_SELF && g_currentState != STATE_CODING && g_currentState != STATE_BOX) {
                 if (rand() % 2 == 0) {
                     g_currentState = STATE_SCRATCH_SELF;
                 } else {
@@ -781,36 +973,110 @@ void UpdateNekoLogic() {
         g_nekoX += moveX;
         g_nekoY += moveY;
 
-        // Keep inside screen boundaries
-        int screenWidth = GetSystemMetrics(SM_CXSCREEN);
-        int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+        // Keep inside screen boundaries on current monitor
+        RECT rWork;
+        GetNekoMonitorBounds((int)g_nekoX, (int)g_nekoY, rWork);
+        int screenLeft = rWork.left;
+        int screenTop = rWork.top;
+        int screenWidth = rWork.right;
+        int screenHeight = rWork.bottom;
 
-        if (g_nekoX < 0) g_nekoX = 0;
-        if (g_nekoY < 0) g_nekoY = 0;
+        if (g_nekoX < screenLeft) g_nekoX = screenLeft;
+        if (g_nekoY < screenTop) g_nekoY = screenTop;
         if (g_nekoX > screenWidth - catSize) g_nekoX = screenWidth - catSize;
         if (g_nekoY > screenHeight - catSize) g_nekoY = screenHeight - catSize;
 
         // Edge scratching animation logic
         const int EDGE_THRESHOLD = 5;
-        if (g_nekoY <= EDGE_THRESHOLD) {
+        if (g_nekoY <= screenTop + EDGE_THRESHOLD) {
             g_currentState = STATE_SCRATCH_WALL_N;
         } else if (g_nekoY >= screenHeight - catSize - EDGE_THRESHOLD) {
             g_currentState = STATE_SCRATCH_WALL_S;
-        } else if (g_nekoX <= EDGE_THRESHOLD) {
+        } else if (g_nekoX <= screenLeft + EDGE_THRESHOLD) {
             g_currentState = STATE_SCRATCH_WALL_W;
         } else if (g_nekoX >= screenWidth - catSize - EDGE_THRESHOLD) {
             g_currentState = STATE_SCRATCH_WALL_E;
         }
     }
 
+    // 1. Zzz Sleep Particles
+    if (g_currentState == STATE_SLEEPING) {
+        if (rand() % 12 == 0) {
+            SpawnHearts(catSize / 2.0, 20.0, 1, L'Z');
+        }
+    }
+
+    // 2. Keyboard Typing Activity Detector
+    static int s_keyPressCount = 0;
+    static int s_typingTimer = 0;
+    s_typingTimer++;
+    bool keyPressed = false;
+    for (int k = 0x30; k <= 0x5A; ++k) {
+        if (GetAsyncKeyState(k) & 0x8000) {
+            keyPressed = true;
+            break;
+        }
+    }
+    if (!keyPressed && (GetAsyncKeyState(VK_SPACE) & 0x8000 || GetAsyncKeyState(VK_BACK) & 0x8000 || GetAsyncKeyState(VK_RETURN) & 0x8000)) {
+        keyPressed = true;
+    }
+    if (keyPressed) {
+        s_keyPressCount++;
+    }
+    if (s_typingTimer >= 15) {
+        if (s_keyPressCount >= 6) {
+            if (g_currentState != STATE_CODING && g_currentState != STATE_EATING && !g_isDragging && !g_isFalling) {
+                g_currentState = STATE_CODING;
+                g_currentFrameIndex = 0;
+                g_idleTicks = 0;
+                g_happinessLevel = std::min(100, g_happinessLevel + 2);
+            }
+        }
+        s_keyPressCount = 0;
+        s_typingTimer = 0;
+    }
+
+    // 3. Music Dance Mode
+    if (g_settings.musicMode) {
+        float peak = GetSystemAudioPeakVolume();
+        if (peak > 0.015f) {
+            static int danceTicks = 0;
+            danceTicks++;
+            if (g_currentState != STATE_CODING && g_currentState != STATE_EATING && !g_isDragging && !g_isFalling) {
+                g_currentState = (danceTicks % 2 == 0) ? STATE_ALERT : STATE_IDLE;
+                g_currentFrameIndex = 0;
+                g_idleTicks = 0;
+            }
+        }
+    }
+
+    // 4. Happiness Decay
+    static int s_happinessTimer = 0;
+    s_happinessTimer++;
+    if (s_happinessTimer >= 300) {
+        g_happinessLevel = std::max(0, g_happinessLevel - 1);
+        s_happinessTimer = 0;
+    }
+
     // Cycle frame index
     g_currentFrameIndex = (g_currentFrameIndex + 1) % GetCharacterFrameCount(g_currentState, g_settings.character);
+
+    return (g_nekoX != oldX || g_nekoY != oldY || 
+            g_currentState != oldState || g_currentFrameIndex != oldFrameIndex ||
+            g_particles.size() > 0 || oldParticleCount > 0 ||
+            g_isFeeding || g_isDragging || g_isFalling);
 }
 
 // Window Procedure for transparent pet window
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
     switch (message) {
         case WM_NCHITTEST: {
+            if (g_settings.clickThrough) {
+                // Click-through is active unless Ctrl is held down
+                if (!(GetAsyncKeyState(VK_CONTROL) & 0x8000)) {
+                    return HTTRANSPARENT;
+                }
+            }
             POINT ptMouse;
             ptMouse.x = GET_X_LPARAM(lParam);
             ptMouse.y = GET_Y_LPARAM(lParam);
@@ -828,21 +1094,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
             int catBottom = extraTop + catSize;
             
             if (ptClient.x >= catLeft && ptClient.x < catRight && ptClient.y >= catTop && ptClient.y < catBottom) {
-                if (g_pSpriteBitmap && g_pSpriteBitmap->GetLastStatus() == Ok) {
-                    Frame frame = GetCharacterFrame(g_currentState, g_currentFrameIndex, g_settings.character);
-                    int spriteW = g_pSpriteBitmap->GetWidth() / 8;
-                    int spriteH = (g_settings.character == L"anime") ? (g_pSpriteBitmap->GetHeight() / 8) : (g_pSpriteBitmap->GetHeight() / 4);
-                    
+                Frame frame = GetCharacterFrame(g_currentState, g_currentFrameIndex, g_settings.character);
+                int frameIdx = frame.row * 8 + frame.col;
+                if (frameIdx >= 0 && frameIdx < 48 && g_pSpriteFrames[frameIdx] && g_pSpriteFrames[frameIdx]->GetLastStatus() == Ok) {
+                    Bitmap* pBmp = g_pSpriteFrames[frameIdx];
                     int relativeX = ptClient.x - catLeft;
                     int relativeY = ptClient.y - catTop;
                     
-                    int pixelX = frame.col * spriteW + (relativeX * spriteW / catSize);
-                    int pixelY = frame.row * spriteH + (relativeY * spriteH / catSize);
+                    int pixelX = relativeX * pBmp->GetWidth() / catSize;
+                    int pixelY = relativeY * pBmp->GetHeight() / catSize;
                     
-                    if (pixelX >= 0 && pixelX < (int)g_pSpriteBitmap->GetWidth() &&
-                        pixelY >= 0 && pixelY < (int)g_pSpriteBitmap->GetHeight()) {
+                    if (pixelX >= 0 && pixelX < (int)pBmp->GetWidth() &&
+                        pixelY >= 0 && pixelY < (int)pBmp->GetHeight()) {
                         Color c;
-                        g_pSpriteBitmap->GetPixel(pixelX, pixelY, &c);
+                        pBmp->GetPixel(pixelX, pixelY, &c);
                         if (c.GetAlpha() > 20) {
                             return HTCLIENT;
                         }
@@ -850,6 +1115,32 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
                 }
             }
             return HTTRANSPARENT;
+        }
+
+        case WM_MOUSEWHEEL: {
+            POINT pt;
+            pt.x = GET_X_LPARAM(lParam);
+            pt.y = GET_Y_LPARAM(lParam);
+            // Disable window temporarily so WindowFromPoint passes through to the background window
+            EnableWindow(hWnd, FALSE);
+            HWND hwndUnder = WindowFromPoint(pt);
+            EnableWindow(hWnd, TRUE);
+            if (hwndUnder && hwndUnder != hWnd) {
+                PostMessageW(hwndUnder, WM_MOUSEWHEEL, wParam, lParam);
+            }
+            break;
+        }
+
+        case WM_LBUTTONDBLCLK: {
+            g_happinessLevel = std::min(100, g_happinessLevel + 15);
+            PlayMeowAsync();
+            int catSize = 32 * g_settings.size / 100;
+            SpawnHearts(catSize / 2.0, 25.0, 10);
+            g_currentState = STATE_ALERT;
+            g_currentFrameIndex = 0;
+            g_idleTicks = 0;
+            UpdateNekoWindow();
+            break;
         }
 
         case WM_LBUTTONDOWN: {
@@ -909,6 +1200,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
             GetCursorPos(&curPoint);
             
             HMENU hMenu = CreatePopupMenu();
+            std::wstring happinessStr = L"Mutluluk: " + std::to_wstring(g_happinessLevel) + L"%";
+            AppendMenuW(hMenu, MF_STRING | MF_GRAYED, 0, happinessStr.c_str());
+            AppendMenuW(hMenu, MF_SEPARATOR, 0, NULL);
             AppendMenuW(hMenu, MF_STRING, IDM_PET, L"Sev");
             AppendMenuW(hMenu, MF_STRING, IDM_FEED, L"Yem Ver");
             AppendMenuW(hMenu, MF_SEPARATOR, 0, NULL);
@@ -938,8 +1232,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
             break;
 
         case WM_TIMER:
-            UpdateNekoLogic();
-            UpdateNekoWindow();
+            if (UpdateNekoLogic()) {
+                UpdateNekoWindow();
+            }
             break;
 
         case WM_TRAY_ICON:
@@ -948,6 +1243,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
                 GetCursorPos(&curPoint);
                 
                 HMENU hMenu = CreatePopupMenu();
+                std::wstring happinessStr = L"Mutluluk: " + std::to_wstring(g_happinessLevel) + L"%";
+                AppendMenuW(hMenu, MF_STRING | MF_GRAYED, 0, happinessStr.c_str());
+                AppendMenuW(hMenu, MF_SEPARATOR, 0, NULL);
                 AppendMenuW(hMenu, MF_STRING, IDM_PET, L"Sev");
                 AppendMenuW(hMenu, MF_STRING, IDM_FEED, L"Yem Ver");
                 AppendMenuW(hMenu, MF_SEPARATOR, 0, NULL);
@@ -997,7 +1295,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
                         int catSize = 32 * g_settings.size / 100;
                         g_fishX = catSize / 2.0;
                         g_fishY = -20.0;
-                        g_currentState = STATE_ALERT;
+                        g_currentState = STATE_EXPECT_FOOD;
                         g_currentFrameIndex = 0;
                         UpdateNekoWindow();
                     }
@@ -1049,6 +1347,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     // Register Window Class
     WNDCLASSW wc = {};
+    wc.style = CS_DBLCLKS;
     wc.lpfnWndProc = WndProc;
     wc.hInstance = hInstance;
     wc.lpszClassName = L"KedayMainWindowClass";
@@ -1097,8 +1396,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     }
 
     // Cleanup
-    if (g_pSpriteBitmap) {
-        delete g_pSpriteBitmap;
+    for (int i = 0; i < 48; ++i) {
+        if (g_pSpriteFrames[i]) {
+            delete g_pSpriteFrames[i];
+            g_pSpriteFrames[i] = nullptr;
+        }
     }
 
     CloseSettingsWindow();

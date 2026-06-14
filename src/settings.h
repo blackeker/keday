@@ -15,6 +15,13 @@ struct Settings {
     int opacity;
     bool followMouse;
     bool isDarkMode;
+    
+    // Advanced features properties
+    int version;
+    int volume;
+    bool clickThrough;
+    int accessory; // 0: None, 1: Glasses, 2: Santa Hat, 3: Bow Tie
+    bool musicMode;
 };
 
 void LoadSettings(Settings& settings);

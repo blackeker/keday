@@ -15,6 +15,7 @@ std::wstring GetSettingsPath() {
 
 void LoadSettings(Settings& settings) {
     std::wstring path = GetSettingsPath();
+    settings.version = GetPrivateProfileIntW(L"Settings", L"version", 0, path.c_str());
     settings.speed = GetPrivateProfileIntW(L"Settings", L"speed", 10, path.c_str());
     settings.size = GetPrivateProfileIntW(L"Settings", L"size", 100, path.c_str());
     settings.alwaysOnTop = GetPrivateProfileIntW(L"Settings", L"alwaysOnTop", 1, path.c_str()) != 0;
@@ -30,10 +31,21 @@ void LoadSettings(Settings& settings) {
     settings.opacity = GetPrivateProfileIntW(L"Settings", L"opacity", 100, path.c_str());
     settings.followMouse = GetPrivateProfileIntW(L"Settings", L"followMouse", 1, path.c_str()) != 0;
     settings.isDarkMode = GetPrivateProfileIntW(L"Settings", L"isDarkMode", 1, path.c_str()) != 0;
+
+    settings.volume = GetPrivateProfileIntW(L"Settings", L"volume", 50, path.c_str());
+    settings.clickThrough = GetPrivateProfileIntW(L"Settings", L"clickThrough", 0, path.c_str()) != 0;
+    settings.accessory = GetPrivateProfileIntW(L"Settings", L"accessory", 0, path.c_str());
+    settings.musicMode = GetPrivateProfileIntW(L"Settings", L"musicMode", 0, path.c_str()) != 0;
+
+    if (settings.version < 2) {
+        settings.version = 2;
+        SaveSettings(settings);
+    }
 }
 
 void SaveSettings(const Settings& settings) {
     std::wstring path = GetSettingsPath();
+    WritePrivateProfileStringW(L"Settings", L"version", std::to_wstring(settings.version).c_str(), path.c_str());
     WritePrivateProfileStringW(L"Settings", L"speed", std::to_wstring(settings.speed).c_str(), path.c_str());
     WritePrivateProfileStringW(L"Settings", L"size", std::to_wstring(settings.size).c_str(), path.c_str());
     WritePrivateProfileStringW(L"Settings", L"alwaysOnTop", std::to_wstring(settings.alwaysOnTop ? 1 : 0).c_str(), path.c_str());
@@ -45,6 +57,10 @@ void SaveSettings(const Settings& settings) {
     WritePrivateProfileStringW(L"Settings", L"opacity", std::to_wstring(settings.opacity).c_str(), path.c_str());
     WritePrivateProfileStringW(L"Settings", L"followMouse", std::to_wstring(settings.followMouse ? 1 : 0).c_str(), path.c_str());
     WritePrivateProfileStringW(L"Settings", L"isDarkMode", std::to_wstring(settings.isDarkMode ? 1 : 0).c_str(), path.c_str());
+    WritePrivateProfileStringW(L"Settings", L"volume", std::to_wstring(settings.volume).c_str(), path.c_str());
+    WritePrivateProfileStringW(L"Settings", L"clickThrough", std::to_wstring(settings.clickThrough ? 1 : 0).c_str(), path.c_str());
+    WritePrivateProfileStringW(L"Settings", L"accessory", std::to_wstring(settings.accessory).c_str(), path.c_str());
+    WritePrivateProfileStringW(L"Settings", L"musicMode", std::to_wstring(settings.musicMode ? 1 : 0).c_str(), path.c_str());
 }
 
 void SetAutoStart(bool enable) {
