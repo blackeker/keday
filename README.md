@@ -66,6 +66,5 @@ Eğlenceli Türkçe arayüze sahip kurulum sihirbazını (`KedaySetup.exe`) pake
 
 ## 🔗 Destek ve İletişim
 
-- **Discord Sunucusu:** [Discord](https://discord.gg/hentaitr)
-- **Instagram:** [@blackekerr](https://instagram.com/blackekerr)
+- **Instagram:** [@blackekerr](https://instagram.com/me.yusufkaymaz)
 - **GitHub:** [blackeker/Keday](https://github.com/blackeker/Keday)
