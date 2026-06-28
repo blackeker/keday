@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include "features.h"
 
 using namespace Gdiplus;
 
@@ -85,7 +86,7 @@ struct SettingsWindowState {
     bool trackingMouse = false;
     int previewFrameIndex = 0;
     int scrollY = 0;
-    int maxScrollY = 605;
+    int maxScrollY = 690;
     int focusedSliderIdx = -1;
 };
 
@@ -127,14 +128,28 @@ static void InitializeLayout(HWND hWnd) {
     g_pState->socialButtons.clear();
     g_pState->accessoryBtns.clear();
     
-    g_pState->maxScrollY = 605;
+    g_pState->maxScrollY = 785;
 
-    // 1. Character Cards
-    std::wstring chars[] = { L"oneko", L"red", L"green", L"rw", L"dog", L"tora", L"sakura", L"bsd", L"tomoyo", L"eevee", L"bunny", L"black" };
-    std::wstring charLabels[] = { L"Keday", L"Kırmızı", L"Yeşil", L"Siyah-Beyaz", L"Köpek", L"Kaplan", L"Sakura", L"BSD Daemon", L"Tomoyo", L"Eevee", L"Tavşan", L"Kara Kedi" };
-    for (int i = 0; i < 12; ++i) {
+    // 1. Character Cards (6 columns, 6 rows = 36 card slots, 35 filled)
+    std::wstring chars[] = { 
+        L"oneko", L"red", L"green", L"rw", L"dog", L"tora",
+        L"sakura", L"bsd", L"tomoyo", L"eevee", L"bunny", L"black",
+        L"neko", L"fox", L"ace", L"calico", L"esmeralda", L"ghost",
+        L"gray", L"jess", L"kina", L"lucy", L"maia", L"mike",
+        L"blue", L"gold", L"purple", L"orange", L"pink",
+        L"maria", L"silver", L"silversky", L"snuupy", L"spirit", L"valentine"
+    };
+    std::wstring charLabels[] = { 
+        L"Keday", L"Kırmızı", L"Yeşil", L"Siyah-Beyaz", L"Köpek", L"Kaplan",
+        L"Sakura", L"BSD Daemon", L"Tomoyo", L"Eevee", L"Tavşan", L"Kara Kedi",
+        L"Neko", L"Tilki", L"Ace", L"Calico", L"Esmeralda", L"Hayalet",
+        L"Gri", L"Jess", L"Kina", L"Lucy", L"Maia", L"Mike",
+        L"Mavi", L"Altın", L"Mor", L"Turuncu", L"Pembe",
+        L"Maria", L"Gümüş", L"Mavi Gümüş", L"Snuupy", L"Ruh", L"Sevgili"
+    };
+    for (int i = 0; i < 35; ++i) {
         Card card;
-        card.rect = Rect(35 + (i % 4) * 98, 90 + (i / 4) * 85, 72, 72);
+        card.rect = Rect(24 + (i % 6) * 68, 90 + (i / 6) * 75, 60, 60);
         card.name = chars[i];
         card.label = charLabels[i];
         std::wstring baseDir = GetExeDir();
@@ -147,7 +162,7 @@ static void InitializeLayout(HWND hWnd) {
     // 2. Sliders
     if (g_pSettings) {
         Slider speed;
-        speed.trackRect = Rect(30, 380, 390, 8);
+        speed.trackRect = Rect(30, 560, 390, 8);
         speed.valPtr = &g_pSettings->speed;
         speed.minVal = 1;
         speed.maxVal = 30;
@@ -157,7 +172,7 @@ static void InitializeLayout(HWND hWnd) {
         g_pState->sliders.push_back(speed);
 
         Slider size;
-        size.trackRect = Rect(30, 435, 390, 8);
+        size.trackRect = Rect(30, 615, 390, 8);
         size.valPtr = &g_pSettings->size;
         size.minVal = 50;
         size.maxVal = 300;
@@ -167,7 +182,7 @@ static void InitializeLayout(HWND hWnd) {
         g_pState->sliders.push_back(size);
 
         Slider opacity;
-        opacity.trackRect = Rect(30, 490, 390, 8);
+        opacity.trackRect = Rect(30, 670, 390, 8);
         opacity.valPtr = &g_pSettings->opacity;
         opacity.minVal = 10;
         opacity.maxVal = 100;
@@ -177,7 +192,7 @@ static void InitializeLayout(HWND hWnd) {
         g_pState->sliders.push_back(opacity);
 
         Slider volume;
-        volume.trackRect = Rect(30, 545, 390, 8);
+        volume.trackRect = Rect(30, 725, 390, 8);
         volume.valPtr = &g_pSettings->volume;
         volume.minVal = 0;
         volume.maxVal = 100;
@@ -186,17 +201,17 @@ static void InitializeLayout(HWND hWnd) {
         volume.isDragging = false;
         g_pState->sliders.push_back(volume);
 
-        // 3. Toggles (2 columns, starting at Y = 605)
-        Toggle t1 = { Rect(30, 605, 180, 30), &g_pSettings->alwaysOnTop, L"Her Zaman Üstte" };
-        Toggle t2 = { Rect(30, 645, 180, 30), &g_pSettings->followMouse, L"Fareyi Takip Et" };
-        Toggle t3 = { Rect(30, 685, 180, 30), &g_pSettings->showShadow, L"Gölge Göster" };
-        Toggle t4 = { Rect(30, 725, 180, 30), &g_pSettings->isDarkMode, L"Koyu Tema" };
-        Toggle t5 = { Rect(30, 765, 180, 30), &g_pSettings->clickThrough, L"Tıklamayı Geçir" };
+        // 3. Toggles (2 columns, starting at Y = 770)
+        Toggle t1 = { Rect(30, 770, 180, 30), &g_pSettings->alwaysOnTop, L"Her Zaman Üstte" };
+        Toggle t2 = { Rect(30, 810, 180, 30), &g_pSettings->followMouse, L"Fareyi Takip Et" };
+        Toggle t3 = { Rect(30, 850, 180, 30), &g_pSettings->showShadow, L"Gölge Göster" };
+        Toggle t4 = { Rect(30, 890, 180, 30), &g_pSettings->isDarkMode, L"Koyu Tema" };
+        Toggle t5 = { Rect(30, 930, 180, 30), &g_pSettings->clickThrough, L"Tıklamayı Geçir" };
         
-        Toggle t6 = { Rect(240, 605, 180, 30), &g_pSettings->minimizeToTray, L"Tepsiye Küçült" };
-        Toggle t7 = { Rect(240, 645, 180, 30), &g_pSettings->autoLaunch, L"Başlangıçta Aç" };
-        Toggle t8 = { Rect(240, 685, 180, 30), &g_pSettings->hideOnFullscreen, L"Tam Ekran Gizle" };
-        Toggle t9 = { Rect(240, 725, 180, 30), &g_pSettings->musicMode, L"Müzik Dans Modu" };
+        Toggle t6 = { Rect(240, 770, 180, 30), &g_pSettings->minimizeToTray, L"Tepsiye Küçült" };
+        Toggle t7 = { Rect(240, 810, 180, 30), &g_pSettings->autoLaunch, L"Başlangıçta Aç" };
+        Toggle t8 = { Rect(240, 850, 180, 30), &g_pSettings->hideOnFullscreen, L"Tam Ekran Gizle" };
+        Toggle t9 = { Rect(240, 890, 180, 30), &g_pSettings->musicMode, L"Müzik Dans Modu" };
 
         g_pState->toggles.push_back(t1);
         g_pState->toggles.push_back(t2);
@@ -209,20 +224,20 @@ static void InitializeLayout(HWND hWnd) {
         g_pState->toggles.push_back(t9);
     }
 
-    // 4. Accessory Buttons (None, Glasses, Santa Hat, Bow Tie at Y = 845)
-    AccessoryBtn a0 = { Rect(30, 845, 90, 36), 0, L"Yok" };
-    AccessoryBtn a1 = { Rect(130, 845, 90, 36), 1, L"Gözlük" };
-    AccessoryBtn a2 = { Rect(230, 845, 90, 36), 2, L"Şapka" };
-    AccessoryBtn a3 = { Rect(330, 845, 90, 36), 3, L"Papyon" };
+    // 4. Accessory Buttons (None, Glasses, Santa Hat, Bow Tie at Y = 1010)
+    AccessoryBtn a0 = { Rect(30, 1010, 90, 36), 0, L"Yok" };
+    AccessoryBtn a1 = { Rect(130, 1010, 90, 36), 1, L"Gözlük" };
+    AccessoryBtn a2 = { Rect(230, 1010, 90, 36), 2, L"Şapka" };
+    AccessoryBtn a3 = { Rect(330, 1010, 90, 36), 3, L"Papyon" };
     g_pState->accessoryBtns.push_back(a0);
     g_pState->accessoryBtns.push_back(a1);
     g_pState->accessoryBtns.push_back(a2);
     g_pState->accessoryBtns.push_back(a3);
 
-    // 5. Social Buttons (Shifted down)
-    ButtonControl discord = { Rect(30, 905, 115, 36), L"Discord", L"https://discord.gg/hentaitr", Color(255, 114, 137, 218), Color(255, 91, 110, 174) };
-    ButtonControl github = { Rect(167, 905, 115, 36), L"GitHub", L"https://github.com/blackeker/Keday", Color(255, 51, 51, 51), Color(255, 36, 41, 46) };
-    ButtonControl insta = { Rect(305, 905, 115, 36), L"Instagram", L"https://instagram.com/blackekerr", Color(255, 240, 148, 51), Color(255, 188, 24, 136) };
+    // 5. Social Buttons (Shifted down to Y = 1070)
+    ButtonControl discord = { Rect(30, 1070, 115, 36), L"Discord", L"https://discord.gg/hentaitr", Color(255, 114, 137, 218), Color(255, 91, 110, 174) };
+    ButtonControl github = { Rect(167, 1070, 115, 36), L"GitHub", L"https://github.com/blackeker/Keday", Color(255, 51, 51, 51), Color(255, 36, 41, 46) };
+    ButtonControl insta = { Rect(305, 1070, 115, 36), L"Instagram", L"https://instagram.com/blackekerr", Color(255, 240, 148, 51), Color(255, 188, 24, 136) };
     g_pState->socialButtons.push_back(discord);
     g_pState->socialButtons.push_back(github);
     g_pState->socialButtons.push_back(insta);
@@ -332,33 +347,33 @@ static void PaintSettings(HWND hWnd, HDC hdc) {
         
         Color currentCardBg = isSelected ? (dark ? Color(255, 32, 33, 44) : Color(255, 250, 240, 245)) : (isHovered ? (dark ? Color(255, 30, 31, 38) : Color(255, 245, 247, 250)) : cardBgCol);
         SolidBrush cardBrush(currentCardBg);
-        FillRoundRect(g, &cardBrush, card.rect, 12);
+        FillRoundRect(g, &cardBrush, card.rect, 10);
 
         if (isSelected) {
             LinearGradientBrush activeGradBorder(card.rect, activeCol1, activeCol2, LinearGradientModeVertical);
             Pen activePen(&activeGradBorder, 2);
-            DrawRoundRect(g, &activePen, card.rect, 12);
+            DrawRoundRect(g, &activePen, card.rect, 10);
         } else {
             Pen borderPen(isHovered ? (dark ? Color(255, 80, 82, 105) : Color(255, 255, 110, 140)) : borderCol, 1);
-            DrawRoundRect(g, &borderPen, card.rect, 12);
+            DrawRoundRect(g, &borderPen, card.rect, 10);
         }
 
         // Draw animated character preview
         int frameSelect = g_pState->previewFrameIndex % 2;
         Bitmap* pBmp = card.previewFrames[frameSelect];
         if (pBmp && pBmp->GetLastStatus() == Ok) {
-            int cx = card.rect.X + (card.rect.Width - 40)/2;
-            int cy = card.rect.Y + 6;
-            g.DrawImage(pBmp, Rect(cx, cy, 40, 40), 0, 0, pBmp->GetWidth(), pBmp->GetHeight(), UnitPixel);
+            int cx = card.rect.X + (card.rect.Width - 36)/2;
+            int cy = card.rect.Y + 4;
+            g.DrawImage(pBmp, Rect(cx, cy, 36, 36), 0, 0, pBmp->GetWidth(), pBmp->GetHeight(), UnitPixel);
             if (isSelected) {
-                DrawAccessoryPreview(g, cx, cy, 40, g_pSettings->accessory);
+                DrawAccessoryPreview(g, cx, cy, 36, g_pSettings->accessory);
             }
         }
 
         // Draw label
         StringFormat format;
         format.SetAlignment(StringAlignmentCenter);
-        RectF textRect((REAL)card.rect.X, (REAL)card.rect.Y + 50, (REAL)card.rect.Width, 20.0f);
+        RectF textRect((REAL)card.rect.X, (REAL)card.rect.Y + 42, (REAL)card.rect.Width, 18.0f);
         g.DrawString(card.label.c_str(), -1, &subFont, textRect, &format, &textBrush);
     }
 
@@ -458,7 +473,7 @@ static void PaintSettings(HWND hWnd, HDC hdc) {
     }
 
     // Draw Accessory Buttons Section
-    g.DrawString(L"Aksesuar Seçimi", -1, &sectionFont, PointF(30, 820), &textBrush);
+    g.DrawString(L"Aksesuar Seçimi", -1, &sectionFont, PointF(30, 835), &textBrush);
     for (size_t i = 0; i < g_pState->accessoryBtns.size(); ++i) {
         const auto& btn = g_pState->accessoryBtns[i];
         bool isSelected = (g_pSettings->accessory == btn.value);
@@ -509,12 +524,12 @@ static void PaintSettings(HWND hWnd, HDC hdc) {
     }
 
     // Draw Credits Section (scrollable, below social buttons)
-    g.DrawString(L"Tasarımcılar ve Yapımcılar", -1, &sectionFont, PointF(30, 965), &textBrush);
-    g.DrawString(L"oneko, dog, tora: Tatsuya Kato & Masayuki Koba", -1, &subFont, PointF(30, 990), &subTextBrush);
-    g.DrawString(L"sakura, tomoyo: Kiichiroh Mukose", -1, &subFont, PointF(30, 1007), &subTextBrush);
-    g.DrawString(L"bsd (BSD Daemon): Marshall Kirk McKusick", -1, &subFont, PointF(30, 1024), &subTextBrush);
-    g.DrawString(L"eevee, bunny, black: Onekocord Community / Nintendo", -1, &subFont, PointF(30, 1041), &subTextBrush);
-    g.DrawString(L"© 2026 Keday. Tüm hakları saklıdır.", -1, &subFont, PointF(30, 1065), &subTextBrush);
+    g.DrawString(L"Tasarımcılar ve Yapımcılar", -1, &sectionFont, PointF(30, 980), &textBrush);
+    g.DrawString(L"oneko, dog, tora, calico, gray, lucy: Tatsuya Kato & Masayuki Koba", -1, &subFont, PointF(30, 1005), &subTextBrush);
+    g.DrawString(L"sakura, tomoyo: Kiichiroh Mukose", -1, &subFont, PointF(30, 1022), &subTextBrush);
+    g.DrawString(L"bsd (BSD Daemon): Marshall Kirk McKusick", -1, &subFont, PointF(30, 1039), &subTextBrush);
+    g.DrawString(L"eevee, bunny, black, fox, ace, esmeralda, ghost, jess, kina, maia, mike: Onekocord Community", -1, &subFont, PointF(30, 1056), &subTextBrush);
+    g.DrawString(L"© 2026 Keday. Tüm hakları saklıdır.", -1, &subFont, PointF(30, 1080), &subTextBrush);
 
     // Reset translation to draw static bottom buttons and scrollbar
     g.ResetTransform();
@@ -717,6 +732,7 @@ LRESULT CALLBACK SettingsWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
                 if (btn.rect.Contains(x, scrolledY)) {
                     if (g_pSettings) {
                         g_pSettings->accessory = btn.value;
+                        ProgressQuest(L"acc_change");
                         InvalidateRect(hWnd, NULL, FALSE);
                         if (g_onSettingsChanged) g_onSettingsChanged();
                     }

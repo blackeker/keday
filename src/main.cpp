@@ -20,6 +20,7 @@
 #include "settings.h"
 #include "settings_window.h"
 #include "resources.h"
+#include "features.h"
 
 #pragma comment(lib, "gdi32.lib")
 #pragma comment(lib, "user32.lib")
@@ -60,6 +61,15 @@ __CRT_UUID_DECL(IAudioMeterInformation, 0xC02216C6, 0x8C67, 0x4B5B, 0x9D, 0x00, 
 #define IDM_TOGGLE_VISIBLE 2003
 #define IDM_PET 2004
 #define IDM_FEED 2005
+#define IDM_THEME_NORMAL 3001
+#define IDM_THEME_SEPIA 3002
+#define IDM_THEME_NEON 3003
+#define IDM_THEME_HOLOGRAM 3004
+#define IDM_TOY_YARN 3005
+#define IDM_TOY_LASER 3006
+#define IDM_TOY_MOUSE 3007
+#define IDM_TOY_WATER 3008
+#define IDM_RENAME 3009
 
 // Neko States
 enum NekoState {
@@ -297,9 +307,9 @@ void UpdateNekoWindow() {
     int catSize = 32 * g_settings.size / 100;
     int shadowOffset = g_settings.showShadow ? 8 : 0;
     
-    // Add extra padding around window to draw hearts and falling fish above/around the cat
-    int extraTop = 40;
-    int extraSide = 10;
+    // Add extra padding around window to draw speech bubbles, toys, and names
+    int extraTop = 90;
+    int extraSide = 80;
     int winWidth = catSize + shadowOffset + (extraSide * 2);
     int winHeight = catSize + shadowOffset + extraTop;
 
@@ -335,6 +345,64 @@ void UpdateNekoWindow() {
 
     if (frameIdx >= 0 && frameIdx < 48 && g_pSpriteFrames[frameIdx] && g_pSpriteFrames[frameIdx]->GetLastStatus() == Ok) {
         Bitmap* pBmp = g_pSpriteFrames[frameIdx];
+
+        // Determine Theme or Night Mode (8:00 PM to 6:00 AM)
+        bool isNight = false;
+        time_t rawtime;
+        struct tm timeinfo;
+        time(&rawtime);
+        if (localtime_s(&timeinfo, &rawtime) == 0) {
+            int hour = timeinfo.tm_hour;
+            isNight = (hour >= 20 || hour < 6);
+        }
+
+        ImageAttributes themeAttr;
+        bool hasTheme = false;
+        if (g_colorTheme == 1) { // Sepia
+            ColorMatrix sepiaMatrix = {
+                0.393f, 0.349f, 0.272f, 0.0f, 0.0f,
+                0.769f, 0.686f, 0.534f, 0.0f, 0.0f,
+                0.189f, 0.168f, 0.131f, 0.0f, 0.0f,
+                0.0f,   0.0f,   0.0f,   1.0f, 0.0f,
+                0.0f,   0.0f,   0.0f,   0.0f, 1.0f
+            };
+            themeAttr.SetColorMatrix(&sepiaMatrix, ColorMatrixFlagsDefault, ColorAdjustTypeBitmap);
+            hasTheme = true;
+        }
+        else if (g_colorTheme == 2) { // Neon (pink/purple tint)
+            ColorMatrix neonMatrix = {
+                1.3f, 0.0f, 0.3f, 0.0f, 0.0f,
+                0.0f, 0.5f, 0.0f, 0.0f, 0.0f,
+                0.3f, 0.0f, 1.3f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 1.0f
+            };
+            themeAttr.SetColorMatrix(&neonMatrix, ColorMatrixFlagsDefault, ColorAdjustTypeBitmap);
+            hasTheme = true;
+        }
+        else if (g_colorTheme == 3) { // Hologram (cyber blue translucent)
+            ColorMatrix holoMatrix = {
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 1.2f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 1.5f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.6f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 1.0f
+            };
+            themeAttr.SetColorMatrix(&holoMatrix, ColorMatrixFlagsDefault, ColorAdjustTypeBitmap);
+            hasTheme = true;
+        }
+        else if (isNight) { // Dark Blue Night Tint
+            ColorMatrix nightMatrix = {
+                0.5f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.6f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.9f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 1.0f
+            };
+            themeAttr.SetColorMatrix(&nightMatrix, ColorMatrixFlagsDefault, ColorAdjustTypeBitmap);
+            hasTheme = true;
+        }
+
         // Draw Shadow first
         if (g_settings.showShadow) {
             ImageAttributes shadowAttr;
@@ -355,7 +423,7 @@ void UpdateNekoWindow() {
             angle += (float)(g_velocityX * 1.5);
             g.TranslateTransform(extraSide + catSize / 2.0f, extraTop + catSize / 2.0f);
             g.RotateTransform(angle);
-            g.DrawImage(pBmp, Rect(-catSize / 2, -catSize / 2, catSize, catSize), 0, 0, pBmp->GetWidth(), pBmp->GetHeight(), UnitPixel);
+            g.DrawImage(pBmp, Rect(-catSize / 2, -catSize / 2, catSize, catSize), 0, 0, pBmp->GetWidth(), pBmp->GetHeight(), UnitPixel, hasTheme ? &themeAttr : NULL);
             g.ResetTransform();
             
             // Draw accessory rotated with the cat
@@ -364,7 +432,7 @@ void UpdateNekoWindow() {
             DrawAccessory(g, -catSize / 2, -catSize / 2, catSize, g_settings.accessory);
             g.ResetTransform();
         } else {
-            g.DrawImage(pBmp, Rect(extraSide, extraTop, catSize, catSize), 0, 0, pBmp->GetWidth(), pBmp->GetHeight(), UnitPixel);
+            g.DrawImage(pBmp, Rect(extraSide, extraTop, catSize, catSize), 0, 0, pBmp->GetWidth(), pBmp->GetHeight(), UnitPixel, hasTheme ? &themeAttr : NULL);
             DrawAccessory(g, extraSide, extraTop, catSize, g_settings.accessory);
         }
     }
@@ -393,6 +461,9 @@ void UpdateNekoWindow() {
         }
     }
 
+    // Draw Name tag, speech bubbles, active toys
+    DrawFeatures(g, extraSide, extraTop, catSize);
+
     // Update Layered Window position and size
     POINT ptDst = { (int)g_nekoX - extraSide, (int)g_nekoY - extraTop };
     SIZE sizeDst = { winWidth, winHeight };
@@ -403,6 +474,15 @@ void UpdateNekoWindow() {
     blend.AlphaFormat = AC_SRC_ALPHA;
 
     UpdateLayeredWindow(g_hMainWnd, hScreenDC, &ptDst, &sizeDst, hMemDC, &ptSrc, 0, &blend, ULW_ALPHA);
+
+    // Dynamically update tray tooltip with daily quest progress
+    NOTIFYICONDATAW nid = {};
+    nid.cbSize = sizeof(NOTIFYICONDATAW);
+    nid.hWnd = g_hMainWnd;
+    nid.uID = 1;
+    nid.uFlags = NIF_TIP;
+    wcscpy_s(nid.szTip, GetQuestsStatusString().c_str());
+    Shell_NotifyIconW(NIM_MODIFY, &nid);
 
     // Cleanup
     SelectObject(hMemDC, hOldBitmap);
@@ -564,47 +644,72 @@ void PlayPurrAsync() {
 // Draw scaled procedurally rendered accessories on top of Keday
 void DrawAccessory(Graphics& g, int x, int y, int size, int type) {
     if (type <= 0) return;
+    
+    int offsetHeadX = 0;
     int offsetHeadY = 0;
-    if (g_currentState == STATE_SLEEPING) {
-        offsetHeadY = size / 6;
+    
+    // Shift horizontally depending on walking direction
+    if (g_currentState == STATE_W || g_currentState == STATE_NW || g_currentState == STATE_SW) {
+        offsetHeadX = -(int)(size * 0.10);
     }
+    else if (g_currentState == STATE_E || g_currentState == STATE_NE || g_currentState == STATE_SE) {
+        offsetHeadX = (int)(size * 0.10);
+    }
+    
+    // Shift vertically depending on state
+    if (g_currentState == STATE_SLEEPING) {
+        offsetHeadY = (int)(size * 0.16);
+    }
+    else if (g_currentState == STATE_TIRED) {
+        offsetHeadY = (int)(size * 0.08);
+    }
+    else if (g_currentState == STATE_N || g_currentState == STATE_NE || g_currentState == STATE_NW) {
+        offsetHeadY = -(int)(size * 0.05);
+    }
+    else if (g_currentState == STATE_S || g_currentState == STATE_SE || g_currentState == STATE_SW) {
+        offsetHeadY = (int)(size * 0.05);
+    }
+    
+    x += offsetHeadX;
+    y += offsetHeadY;
+    
     if (type == 1) {
         // Glasses
         Pen glassesPen(Color(255, 0, 0, 0), size / 20.0f);
-        g.DrawRectangle(&glassesPen, x + (int)(size * 0.32), y + (int)(size * 0.38) + offsetHeadY, (int)(size * 0.16), (int)(size * 0.12));
-        g.DrawRectangle(&glassesPen, x + (int)(size * 0.52), y + (int)(size * 0.38) + offsetHeadY, (int)(size * 0.16), (int)(size * 0.12));
-        g.DrawLine(&glassesPen, x + (int)(size * 0.48), y + (int)(size * 0.44) + offsetHeadY, x + (int)(size * 0.52), y + (int)(size * 0.44) + offsetHeadY);
+        g.DrawRectangle(&glassesPen, x + (int)(size * 0.32), y + (int)(size * 0.38), (int)(size * 0.16), (int)(size * 0.12));
+        g.DrawRectangle(&glassesPen, x + (int)(size * 0.52), y + (int)(size * 0.38), (int)(size * 0.16), (int)(size * 0.12));
+        g.DrawLine(&glassesPen, x + (int)(size * 0.48), y + (int)(size * 0.44), x + (int)(size * 0.52), y + (int)(size * 0.44));
     } 
     else if (type == 2) {
         // Santa Hat
         SolidBrush redBrush(Color(255, 230, 40, 40));
         SolidBrush whiteBrush(Color(255, 245, 245, 245));
         Point points[] = {
-            Point(x + (int)(size * 0.35), y + (int)(size * 0.22) + offsetHeadY),
-            Point(x + (int)(size * 0.65), y + (int)(size * 0.22) + offsetHeadY),
-            Point(x + (int)(size * 0.50), y + (int)(size * 0.04) + offsetHeadY)
+            Point(x + (int)(size * 0.35), y + (int)(size * 0.22)),
+            Point(x + (int)(size * 0.65), y + (int)(size * 0.22)),
+            Point(x + (int)(size * 0.50), y + (int)(size * 0.04))
         };
         g.FillPolygon(&redBrush, points, 3);
-        g.FillRectangle(&whiteBrush, x + (int)(size * 0.30), y + (int)(size * 0.20) + offsetHeadY, (int)(size * 0.40), (int)(size * 0.06));
-        g.FillEllipse(&whiteBrush, x + (int)(size * 0.46), y + (int)(size * 0.01) + offsetHeadY, (int)(size * 0.08), (int)(size * 0.08));
+        g.FillRectangle(&whiteBrush, x + (int)(size * 0.30), y + (int)(size * 0.20), (int)(size * 0.40), (int)(size * 0.06));
+        g.FillEllipse(&whiteBrush, x + (int)(size * 0.46), y + (int)(size * 0.01), (int)(size * 0.08), (int)(size * 0.08));
     } 
     else if (type == 3) {
         // Bow Tie
         SolidBrush redBrush(Color(255, 220, 20, 60));
         SolidBrush centerBrush(Color(255, 150, 10, 40));
         Point leftWing[] = {
-            Point(x + (int)(size * 0.38), y + (int)(size * 0.56) + offsetHeadY),
-            Point(x + (int)(size * 0.38), y + (int)(size * 0.68) + offsetHeadY),
-            Point(x + (int)(size * 0.50), y + (int)(size * 0.62) + offsetHeadY)
+            Point(x + (int)(size * 0.38), y + (int)(size * 0.56)),
+            Point(x + (int)(size * 0.38), y + (int)(size * 0.68)),
+            Point(x + (int)(size * 0.50), y + (int)(size * 0.62))
         };
         g.FillPolygon(&redBrush, leftWing, 3);
         Point rightWing[] = {
-            Point(x + (int)(size * 0.62), y + (int)(size * 0.56) + offsetHeadY),
-            Point(x + (int)(size * 0.62), y + (int)(size * 0.68) + offsetHeadY),
-            Point(x + (int)(size * 0.50), y + (int)(size * 0.62) + offsetHeadY)
+            Point(x + (int)(size * 0.62), y + (int)(size * 0.56)),
+            Point(x + (int)(size * 0.62), y + (int)(size * 0.68)),
+            Point(x + (int)(size * 0.50), y + (int)(size * 0.62))
         };
         g.FillPolygon(&redBrush, rightWing, 3);
-        g.FillEllipse(&centerBrush, x + (int)(size * 0.47), y + (int)(size * 0.59) + offsetHeadY, (int)(size * 0.06), (int)(size * 0.06));
+        g.FillEllipse(&centerBrush, x + (int)(size * 0.47), y + (int)(size * 0.59), (int)(size * 0.06), (int)(size * 0.06));
     }
 }
 
@@ -684,10 +789,21 @@ bool UpdateNekoLogic() {
     int oldFrameIndex = g_currentFrameIndex;
     size_t oldParticleCount = g_particles.size();
 
+    // Global Typing speed tracking
+    for (int k = 8; k <= 222; ++k) {
+        if (GetAsyncKeyState(k) & 1) {
+            AddKeyPress();
+        }
+    }
+
+    // Process Clipboard and update custom features
+    ProcessClipboard();
+    int catSize = 32 * g_settings.size / 100;
+    UpdateFeatures(g_nekoX, g_nekoY, catSize);
+    CheckBreakReminder(g_hMainWnd);
+
     POINT mousePos;
     GetCursorPos(&mousePos);
-
-    int catSize = 32 * g_settings.size / 100;
 
     // Update floating heart particles
     for (auto it = g_particles.begin(); it != g_particles.end(); ) {
@@ -718,6 +834,7 @@ bool UpdateNekoLogic() {
             PlayMeowAsync();
             g_isFeeding = false;
             g_feedTicks = 20; // 20 ticks of eating animation (5 loops of 4 frames)
+            ProgressQuest(L"feed_3");
             g_currentState = STATE_EATING;
             g_currentFrameIndex = 0;
             // Spawn happy hearts at the top of the cat's head
@@ -842,7 +959,7 @@ bool UpdateNekoLogic() {
     // Handle random wandering if not following mouse
     if (!shouldFollow) {
         if (!g_isWanderActive) {
-            if (g_idleTicks > 100 && rand() % 40 == 0) {
+            if (g_idleTicks > 20 && rand() % 15 == 0) {
                 g_isWanderActive = true;
                 int ledgeY = 0;
                 if (IsStandingOnWindowLedge((int)g_nekoX, (int)g_nekoY, catSize, ledgeY)) {
@@ -862,11 +979,15 @@ bool UpdateNekoLogic() {
                     }
                 } else {
                     int screenWidth = GetSystemMetrics(SM_CXSCREEN);
+                    int screenHeight = GetSystemMetrics(SM_CYSCREEN);
                     int deltaX = rand() % 400 - 200;
+                    int deltaY = rand() % 300 - 150;
                     g_wanderTargetX = g_nekoX + deltaX;
+                    g_wanderTargetY = g_nekoY + deltaY;
                     if (g_wanderTargetX < 0) g_wanderTargetX = 0;
                     if (g_wanderTargetX > screenWidth - catSize) g_wanderTargetX = screenWidth - catSize;
-                    g_wanderTargetY = GetSystemMetrics(SM_CYSCREEN) - catSize;
+                    if (g_wanderTargetY < 0) g_wanderTargetY = 0;
+                    if (g_wanderTargetY > screenHeight - catSize) g_wanderTargetY = screenHeight - catSize;
                 }
             }
         }
@@ -1145,6 +1266,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 
         case WM_LBUTTONDOWN: {
             PlayMeowAsync();
+            OnMouseClick(0, 0);
             g_isDragging = true;
             g_isFalling = false;
             g_velocityX = 0.0;
@@ -1249,6 +1371,25 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
                 AppendMenuW(hMenu, MF_STRING, IDM_PET, L"Sev");
                 AppendMenuW(hMenu, MF_STRING, IDM_FEED, L"Yem Ver");
                 AppendMenuW(hMenu, MF_SEPARATOR, 0, NULL);
+                
+                // Color Theme Sub-menu
+                HMENU hThemeMenu = CreatePopupMenu();
+                AppendMenuW(hThemeMenu, MF_STRING, IDM_THEME_NORMAL, L"Normal");
+                AppendMenuW(hThemeMenu, MF_STRING, IDM_THEME_SEPIA, L"Sepia (Retro)");
+                AppendMenuW(hThemeMenu, MF_STRING, IDM_THEME_NEON, L"Neon");
+                AppendMenuW(hThemeMenu, MF_STRING, IDM_THEME_HOLOGRAM, L"Hologram");
+                AppendMenuW(hMenu, MF_POPUP, (UINT_PTR)hThemeMenu, L"Renk Teması");
+
+                // Toys Sub-menu
+                HMENU hToyMenu = CreatePopupMenu();
+                AppendMenuW(hToyMenu, MF_STRING, IDM_TOY_YARN, L"İp Yumağı Bırak");
+                AppendMenuW(hToyMenu, MF_STRING, IDM_TOY_LASER, L"Lazer Dot Bırak");
+                AppendMenuW(hToyMenu, MF_STRING, IDM_TOY_MOUSE, L"Oyuncak Fare Bırak");
+                AppendMenuW(hToyMenu, MF_STRING, IDM_TOY_WATER, L"Su Kabı Bırak");
+                AppendMenuW(hMenu, MF_POPUP, (UINT_PTR)hToyMenu, L"Oyuncak Bırak");
+
+                AppendMenuW(hMenu, MF_STRING, IDM_RENAME, L"İsim Değiştir");
+                AppendMenuW(hMenu, MF_SEPARATOR, 0, NULL);
                 AppendMenuW(hMenu, MF_STRING, IDM_SETTINGS, L"Ayarlar");
                 AppendMenuW(hMenu, MF_STRING, IDM_TOGGLE_VISIBLE, g_bVisible ? L"Kediyi Gizle" : L"Kediyi Göster");
                 AppendMenuW(hMenu, MF_SEPARATOR, 0, NULL);
@@ -1301,6 +1442,50 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
                     }
                     break;
                 }
+                case IDM_THEME_NORMAL:
+                    g_colorTheme = 0;
+                    ProgressQuest(L"theme_change");
+                    UpdateNekoWindow();
+                    break;
+                case IDM_THEME_SEPIA:
+                    g_colorTheme = 1;
+                    ProgressQuest(L"theme_change");
+                    UpdateNekoWindow();
+                    break;
+                case IDM_THEME_NEON:
+                    g_colorTheme = 2;
+                    ProgressQuest(L"theme_change");
+                    UpdateNekoWindow();
+                    break;
+                case IDM_THEME_HOLOGRAM:
+                    g_colorTheme = 3;
+                    ProgressQuest(L"theme_change");
+                    UpdateNekoWindow();
+                    break;
+                case IDM_TOY_YARN:
+                    SpawnToy(TOY_BALL_OF_YARN, (int)g_nekoX + 60, (int)g_nekoY + 30);
+                    UpdateNekoWindow();
+                    break;
+                case IDM_TOY_LASER:
+                    SpawnToy(TOY_LASER_DOT, (int)g_nekoX + 60, (int)g_nekoY + 30);
+                    UpdateNekoWindow();
+                    break;
+                case IDM_TOY_MOUSE:
+                    SpawnToy(TOY_MOUSE_TOY, (int)g_nekoX + 60, (int)g_nekoY + 30);
+                    UpdateNekoWindow();
+                    break;
+                case IDM_TOY_WATER:
+                    SpawnToy(TOY_WATER_BOWL, (int)g_nekoX + 60, (int)g_nekoY + 30);
+                    UpdateNekoWindow();
+                    break;
+                case IDM_RENAME: {
+                    static int nameIdx = 0;
+                    std::wstring names[] = { L"Keday", L"Tekir", L"Pati", L"Duman", L"Pamuk", L"Minnoş" };
+                    nameIdx = (nameIdx + 1) % 6;
+                    g_catName = names[nameIdx];
+                    UpdateNekoWindow();
+                    break;
+                }
                 case IDM_EXIT:
                     CloseSettingsWindow();
                     DestroyWindow(hWnd);
@@ -1331,14 +1516,23 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     g_hInstance = hInstance;
     srand((unsigned int)time(NULL));
 
+    // Initialize COM for audio meter features
+    HRESULT hrCo = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
+
     // Prevent multiple instances
     HANDLE hMutex = CreateMutexW(NULL, TRUE, L"KedaySingleInstanceMutex");
     if (GetLastError() == ERROR_ALREADY_EXISTS) {
+        if (SUCCEEDED(hrCo)) {
+            CoUninitialize();
+        }
         return 0;
     }
 
     // Load Settings
     LoadSettings(g_settings);
+
+    // Initialize custom features
+    InitFeatures();
 
     // Initialize GDI+
     GdiplusStartupInput gdiplusStartupInput;
@@ -1381,6 +1575,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         GdiplusShutdown(gdiplusToken);
         ReleaseMutex(hMutex);
         CloseHandle(hMutex);
+        if (SUCCEEDED(hrCo)) {
+            CoUninitialize();
+        }
         return 0;
     }
 
@@ -1407,6 +1604,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     GdiplusShutdown(gdiplusToken);
     ReleaseMutex(hMutex);
     CloseHandle(hMutex);
+
+    if (SUCCEEDED(hrCo)) {
+        CoUninitialize();
+    }
 
     return (int)msg.wParam;
 }

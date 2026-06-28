@@ -6,24 +6,27 @@ echo.
 
 :: Try to find g++ in PATH
 where g++ >nul 2>&1
-if %ERRORLEVEL% NEQ 0 (
-    if exist C:\msys64\mingw64\bin\g++.exe (
-        set PATH=%PATH%;C:\msys64\mingw64\bin
-        echo [INFO] C:\msys64\mingw64\bin path'e eklendi.
-    ) else if exist C:\msys64\ucrt64\bin\g++.exe (
-        set PATH=%PATH%;C:\msys64\ucrt64\bin
-        echo [INFO] C:\msys64\ucrt64\bin path'e eklendi.
-    ) else (
-        echo [HATA] g++ bulunamadi!
-        echo.
-        echo MSYS2/MinGW kuruluysa, terminali kapatip tekrar acin
-        echo veya asagidaki komutu calistirin:
-        echo   set PATH=%%PATH%%;C:\msys64\mingw64\bin
-        echo.
-        pause
-        exit /b 1
-    )
+if %ERRORLEVEL% EQU 0 goto gxx_found
+if exist C:\msys64\mingw64\bin\g++.exe (
+    set "PATH=%PATH%;C:\msys64\mingw64\bin"
+    echo [INFO] C:\msys64\mingw64\bin path'e eklendi.
+    goto gxx_found
 )
+if exist C:\msys64\ucrt64\bin\g++.exe (
+    set "PATH=%PATH%;C:\msys64\ucrt64\bin"
+    echo [INFO] C:\msys64\ucrt64\bin path'e eklendi.
+    goto gxx_found
+)
+echo [HATA] g++ bulunamadi!
+echo.
+echo MSYS2/MinGW kuruluysa, terminali kapatip tekrar acin
+echo veya asagidaki komutu calistirin:
+echo   set PATH=%%PATH%%;C:\msys64\mingw64\bin
+echo.
+pause
+exit /b 1
+
+:gxx_found
 
 echo [1/4] Build dizini olusturuluyor...
 if not exist build mkdir build
@@ -58,8 +61,15 @@ if %ERRORLEVEL% NEQ 0 (
     exit /b 1
 )
 
+g++ -O2 -std=c++17 -DUNICODE -D_UNICODE -mwindows -c src/features.cpp -o build/features.o
+if %ERRORLEVEL% NEQ 0 (
+    echo [HATA] features.cpp derleme basarisiz!
+    pause
+    exit /b 1
+)
+
 echo [4/4] Baglaniyor (linking)...
-g++ -O2 -std=c++17 -DUNICODE -D_UNICODE -mwindows -static -o Keday.exe build/main.o build/settings.o build/settings_window.o build/resources.o -lgdiplus -lgdi32 -luser32 -lshell32 -lshlwapi -ladvapi32 -lole32 -lcomctl32 -lwinmm
+g++ -O2 -std=c++17 -DUNICODE -D_UNICODE -mwindows -static -o Keday.exe build/main.o build/settings.o build/settings_window.o build/features.o build/resources.o -lgdiplus -lgdi32 -luser32 -lshell32 -lshlwapi -ladvapi32 -lole32 -lcomctl32 -lwinmm
 if %ERRORLEVEL% NEQ 0 (
     echo [HATA] Baglama basarisiz!
     pause
