@@ -101,6 +101,11 @@ void LoadCharacterSprite(const std::wstring& characterName) {
             if (g_pSpriteFrames[k]) delete g_pSpriteFrames[k];
             std::wstring fallback = baseDir + L"\\assets\\oneko\\" + std::to_wstring(k) + L".png";
             g_pSpriteFrames[k] = Bitmap::FromFile(fallback.c_str());
+            // If fallback also fails, ensure pointer is null to prevent crash
+            if (g_pSpriteFrames[k] && g_pSpriteFrames[k]->GetLastStatus() != Ok) {
+                delete g_pSpriteFrames[k];
+                g_pSpriteFrames[k] = nullptr;
+            }
         }
     }
 }

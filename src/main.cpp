@@ -31,6 +31,93 @@
 
 using namespace Gdiplus;
 
+// ── Simple Input Dialog for Rename ────────────────────────────
+static HWND g_hInputDlg = NULL;
+static wchar_t g_inputBuffer[64] = {};
+static bool g_inputOk = false;
+
+static LRESULT CALLBACK InputDlgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+    switch (msg) {
+    case WM_CREATE: {
+        HWND hEdit = CreateWindowExW(0, L"EDIT", g_catName.c_str(),
+            WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOHSCROLL,
+            20, 20, 240, 28, hWnd, (HMENU)101, NULL, NULL);
+        SendMessageW(hEdit, EM_SETLIMITTEXT, 30, 0);
+        SetFocus(hEdit);
+        SendMessageW(hEdit, EM_SETSEL, 0, -1);
+
+        CreateWindowExW(0, L"BUTTON", L"Tamam",
+            WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,
+            60, 60, 90, 30, hWnd, (HMENU)IDOK, NULL, NULL);
+        CreateWindowExW(0, L"BUTTON", L"\u0130ptal",
+            WS_CHILD | WS_VISIBLE,
+            160, 60, 90, 30, hWnd, (HMENU)IDCANCEL, NULL, NULL);
+
+        HFONT hFont = CreateFontW(-14, 0, 0, 0, FW_NORMAL, 0, 0, 0, DEFAULT_CHARSET,
+            0, 0, CLEARTYPE_QUALITY, 0, L"Segoe UI");
+        SendMessageW(hEdit, WM_SETFONT, (WPARAM)hFont, TRUE);
+        EnumChildWindows(hWnd, [](HWND h, LPARAM lp) -> BOOL {
+            SendMessageW(h, WM_SETFONT, (WPARAM)lp, TRUE); return TRUE;
+        }, (LPARAM)hFont);
+        break;
+    }
+    case WM_COMMAND:
+        if (LOWORD(wParam) == IDOK) {
+            HWND hEdit = GetDlgItem(hWnd, 101);
+            GetWindowTextW(hEdit, g_inputBuffer, 64);
+            g_inputOk = true;
+            DestroyWindow(hWnd);
+        } else if (LOWORD(wParam) == IDCANCEL) {
+            g_inputOk = false;
+            DestroyWindow(hWnd);
+        }
+        break;
+    case WM_DESTROY:
+        g_hInputDlg = NULL;
+        break;
+    default:
+        return DefWindowProcW(hWnd, msg, wParam, lParam);
+    }
+    return 0;
+}
+
+static void ShowRenameDialog(HINSTANCE hInst) {
+    if (g_hInputDlg) { SetForegroundWindow(g_hInputDlg); return; }
+
+    WNDCLASSW wc = {};
+    wc.lpfnWndProc = InputDlgProc;
+    wc.hInstance = hInst;
+    wc.lpszClassName = L"KedayInputClass";
+    wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+    wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+    RegisterClassW(&wc);
+
+    int sw = GetSystemMetrics(SM_CXSCREEN);
+    int sh = GetSystemMetrics(SM_CYSCREEN);
+    int w = 300, h = 130;
+
+    g_inputOk = false;
+    g_hInputDlg = CreateWindowExW(WS_EX_TOPMOST, L"KedayInputClass",
+        L"Kedi \u0130smi De\u011fi\u015ftir",
+        WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU,
+        (sw - w) / 2, (sh - h) / 2, w, h,
+        NULL, NULL, hInst, NULL);
+    ShowWindow(g_hInputDlg, SW_SHOW);
+    UpdateWindow(g_hInputDlg);
+
+    MSG msg;
+    while (g_hInputDlg && GetMessageW(&msg, NULL, 0, 0)) {
+        if (!IsDialogMessageW(g_hInputDlg, &msg)) {
+            TranslateMessage(&msg);
+            DispatchMessageW(&msg);
+        }
+    }
+
+    if (g_inputOk && wcslen(g_inputBuffer) > 0) {
+        g_catName = g_inputBuffer;
+    }
+}
+
 // ── WndProc ───────────────────────────────────────────────────
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     switch (msg) {
@@ -200,22 +287,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
         case IDM_TOY_MOUSE: SpawnToy(TOY_MOUSE_TOY,    (int)g_nekoX + 70, (int)g_nekoY + 30); UpdateNekoWindow(); break;
         case IDM_TOY_WATER: SpawnToy(TOY_WATER_BOWL,   (int)g_nekoX + 70, (int)g_nekoY + 30); UpdateNekoWindow(); break;
 
-        case IDM_RENAME: {
-            // Simple input dialog: system InputBox via dedicated dialog
-            wchar_t buf[64] = {};
-            // Use a MessageBox + clipboard trick as minimal inline input
-            // For now: cycle through common cat names
-            static const wchar_t* names[] = {
-                L"Tekir", L"Pati", L"Duman", L"Pamuk", L"Minnos",
-                L"Boncuk", L"Zeytin", L"Peynir", L"Fistik", L"Kekik",
-                L"Simba", L"Nala",   L"Aslan",  L"Pamuklu", L"Keday"
-            };
-            static int idx = 0;
-            g_catName = names[idx % 15];
-            idx++;
+        case IDM_RENAME:
+            ShowRenameDialog(g_hInstance);
             UpdateNekoWindow();
             break;
-        }
         case IDM_EXIT:
             CloseSettingsWindow();
             DestroyWindow(hWnd);
@@ -233,6 +308,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
         CloseSettingsWindow();
         TrayDestroy(hWnd);
         CleanupFeatures();
+        ShutdownAudio();
         PostQuitMessage(0);
         break;
 

@@ -41,6 +41,18 @@ void LoadSettings(Settings& settings) {
         settings.version = 2;
         SaveSettings(settings);
     }
+
+    // Validate and clamp settings values
+    if (settings.speed < 1) settings.speed = 1;
+    if (settings.speed > 30) settings.speed = 30;
+    if (settings.size < 50) settings.size = 50;
+    if (settings.size > 300) settings.size = 300;
+    if (settings.opacity < 10) settings.opacity = 10;
+    if (settings.opacity > 100) settings.opacity = 100;
+    if (settings.volume < 0) settings.volume = 0;
+    if (settings.volume > 100) settings.volume = 100;
+    if (settings.accessory < 0) settings.accessory = 0;
+    if (settings.accessory > 3) settings.accessory = 3;
 }
 
 void SaveSettings(const Settings& settings) {

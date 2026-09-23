@@ -31,8 +31,16 @@ bool IsFullscreenWindowActive() {
 
     RECT rc;
     if (GetWindowRect(hwnd, &rc)) {
-        if ((rc.right - rc.left) >= GetSystemMetrics(SM_CXSCREEN) &&
-            (rc.bottom - rc.top) >= GetSystemMetrics(SM_CYSCREEN)) {
+        HMONITOR hMon = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+        MONITORINFO mi = { sizeof(MONITORINFO) };
+        int monW = GetSystemMetrics(SM_CXSCREEN);
+        int monH = GetSystemMetrics(SM_CYSCREEN);
+        if (GetMonitorInfoW(hMon, &mi)) {
+            monW = mi.rcMonitor.right - mi.rcMonitor.left;
+            monH = mi.rcMonitor.bottom - mi.rcMonitor.top;
+        }
+        if ((rc.right - rc.left) >= monW &&
+            (rc.bottom - rc.top) >= monH) {
             if (!(GetWindowLongW(hwnd, GWL_STYLE) & WS_CAPTION)) return true;
         }
     }

@@ -14,6 +14,13 @@
 #include <ctime>
 #include <cmath>
 #include <thread>
+#include <random>
+
+// ── Modern random number generator ───────────────────────────
+static std::mt19937& GetFeatureRNG() {
+    static std::mt19937 rng(std::random_device{}());
+    return rng;
+}
 
 // ── Global state ──────────────────────────────────────────────
 std::wstring             g_catName         = L"Keday";
@@ -32,8 +39,8 @@ static std::vector<std::wstring> s_highRamQuotes;
 static std::wstring              s_bubbleText     = L"";
 static int                       s_bubbleLife     = 0;
 static int                       s_keyPressCount  = 0;  // single source of truth
-static DWORD                     s_lastWpmCheck   = 0;
-static DWORD                     s_lastEventCheck = 0;
+static ULONGLONG                 s_lastWpmCheck   = 0;
+static ULONGLONG                 s_lastEventCheck = 0;
 static std::wstring              s_currentGift    = L"";
 static bool                      s_isHideSeek     = false;
 static int                       s_hideSeekTicks  = 0;
@@ -74,34 +81,72 @@ static void LoadQuotesJSON() {
     if (pos != std::wstring::npos) dir = dir.substr(0, pos);
     std::wstring jsonPath = dir + L"\\assets\\quotes.json";
 
-    std::ifstream file(jsonPath.c_str());
-    if (file.is_open()) {
-        std::string line;
-        int cur = 0; // 0=quotes 1=low_battery 2=high_ram
-        while (std::getline(file, line)) {
-            size_t a = 0;
-            while ((a = line.find('"', a)) != std::string::npos) {
-                size_t b = line.find('"', a + 1);
-                if (b == std::string::npos) break;
-                std::string val = line.substr(a + 1, b - a - 1);
-                if      (val == "quotes")             cur = 0;
-                else if (val == "low_battery_quotes") cur = 1;
-                else if (val == "high_ram_quotes")    cur = 2;
-                else if (val.length() > 2) {
-                    int n = MultiByteToWideChar(CP_UTF8, 0, val.c_str(), (int)val.size(), NULL, 0);
-                    std::wstring w(n, 0);
-                    MultiByteToWideChar(CP_UTF8, 0, val.c_str(), (int)val.size(), &w[0], n);
-                    if      (cur == 0) s_quotes.push_back(w);
-                    else if (cur == 1) s_lowBatteryQuotes.push_back(w);
-                    else if (cur == 2) s_highRamQuotes.push_back(w);
-                }
-                a = b + 1;
-            }
-        }
+    // Read entire file
+    std::ifstream file(jsonPath.c_str(), std::ios::binary);
+    if (!file.is_open()) goto use_fallback;
+    {
+        std::string content((std::istreambuf_iterator<char>(file)),
+                             std::istreambuf_iterator<char>());
         file.close();
+
+        // Robust JSON string extractor with escaped quote support
+        int currentCategory = -1; // -1=none, 0=quotes, 1=low_battery, 2=high_ram
+        bool inArray = false;
+        size_t i = 0;
+        while (i < content.size()) {
+            if (content[i] == ' ' || content[i] == '\t' ||
+                content[i] == '\n' || content[i] == '\r') { i++; continue; }
+
+            if (content[i] == '"') {
+                i++;
+                std::string str;
+                while (i < content.size() && content[i] != '"') {
+                    if (content[i] == '\\' && i + 1 < content.size()) {
+                        char next = content[i + 1];
+                        if (next == '"') str += '"';
+                        else if (next == '\\') str += '\\';
+                        else if (next == 'n') str += '\n';
+                        else if (next == 't') str += '\t';
+                        else { str += content[i]; str += next; }
+                        i += 2;
+                        continue;
+                    }
+                    str += content[i];
+                    i++;
+                }
+                if (i < content.size()) i++;
+
+                // Check if this is a key (followed by ':')
+                size_t j = i;
+                while (j < content.size() && (content[j] == ' ' || content[j] == '\t' ||
+                       content[j] == '\n' || content[j] == '\r')) j++;
+
+                if (j < content.size() && content[j] == ':') {
+                    if (str == "quotes") currentCategory = 0;
+                    else if (str == "low_battery_quotes") currentCategory = 1;
+                    else if (str == "high_ram_quotes") currentCategory = 2;
+                    else currentCategory = -1;
+                    i = j + 1;
+                } else if (inArray && currentCategory >= 0 && str.length() > 0) {
+                    int n = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), (int)str.size(), NULL, 0);
+                    if (n > 0) {
+                        std::wstring w(n, 0);
+                        MultiByteToWideChar(CP_UTF8, 0, str.c_str(), (int)str.size(), &w[0], n);
+                        if (currentCategory == 0) s_quotes.push_back(w);
+                        else if (currentCategory == 1) s_lowBatteryQuotes.push_back(w);
+                        else if (currentCategory == 2) s_highRamQuotes.push_back(w);
+                    }
+                }
+                continue;
+            }
+
+            if (content[i] == '[') { inArray = true; i++; continue; }
+            if (content[i] == ']') { inArray = false; i++; continue; }
+            i++;
+        }
     }
 
-    // Fallback if file missing / empty
+use_fallback:
     if (s_quotes.empty())
         for (const auto* q : s_fallback) s_quotes.push_back(q);
     if (s_lowBatteryQuotes.empty())
@@ -132,8 +177,8 @@ void InitFeatures() {
         { L"mood_happy",  L"Mutluluk 90+'a \u00e7\u0131kar",   0, 1,  false }
     };
 
-    s_lastWpmCheck   = GetTickCount();
-    s_lastEventCheck = GetTickCount();
+    s_lastWpmCheck   = GetTickCount64();
+    s_lastEventCheck = GetTickCount64();
 }
 
 void CleanupFeatures() {
@@ -149,10 +194,10 @@ void AddKeyPress() {
 
 // ── Break reminder ────────────────────────────────────────────
 void CheckBreakReminder(HWND /*hWnd*/) {
-    static DWORD s_last = 0;
-    if (s_last == 0) s_last = GetTickCount();
-    if (GetTickCount() - s_last > 45u * 60u * 1000u) {
-        s_last = GetTickCount();
+    static ULONGLONG s_last = 0;
+    if (s_last == 0) s_last = GetTickCount64();
+    if (GetTickCount64() - s_last > 45u * 60u * 1000u) {
+        s_last = GetTickCount64();
         s_bubbleText = L"45 dakikad\u0131r \u00e7al\u0131\u015f\u0131yorsun! Mola ver. \u2615";
         s_bubbleLife = 80;
         PlayMeowAsync();
@@ -221,7 +266,7 @@ void OnMouseClick(int /*clickX*/, int /*clickY*/) {
 
     // Random quote
     if (!s_quotes.empty()) {
-        s_bubbleText = s_quotes[rand() % s_quotes.size()];
+        s_bubbleText = s_quotes[std::uniform_int_distribution<int>(0, s_quotes.size() - 1)(GetFeatureRNG())];
         s_bubbleLife = 50;
         PlayMeowAsync();
 
@@ -253,7 +298,7 @@ void ProcessClipboard() {
 
 // ── Random events ─────────────────────────────────────────────
 void TriggerRandomEvent() {
-    int roll = rand() % 7;
+    int roll = std::uniform_int_distribution<int>(0, 6)(GetFeatureRNG());
     if (roll == 0) {
         s_hiccupsActive = true;
         s_hiccupTicks   = 20;
@@ -292,7 +337,7 @@ void UpdateFeatures(double /*catX*/, double /*catY*/, int /*catSize*/) {
         if (s_bubbleLife == 0) s_bubbleText = L"";
     }
 
-    DWORD now = GetTickCount();
+    ULONGLONG now = GetTickCount64();
 
     // WPM tracker (every 10s)
     if (now - s_lastWpmCheck > 10000) {
@@ -316,7 +361,7 @@ void UpdateFeatures(double /*catX*/, double /*catY*/, int /*catSize*/) {
         if (GetSystemPowerStatus(&pwr)) {
             if (pwr.BatteryLifePercent < 20 && pwr.BatteryLifePercent != 255 &&
                 !(pwr.ACLineStatus & 1) && s_bubbleLife == 0) {
-                s_bubbleText = s_lowBatteryQuotes[rand() % s_lowBatteryQuotes.size()];
+                s_bubbleText = s_lowBatteryQuotes[std::uniform_int_distribution<int>(0, s_lowBatteryQuotes.size() - 1)(GetFeatureRNG())];
                 s_bubbleLife = 40;
             }
         }
@@ -324,7 +369,7 @@ void UpdateFeatures(double /*catX*/, double /*catY*/, int /*catSize*/) {
         // RAM
         MEMORYSTATUSEX mem; mem.dwLength = sizeof(mem);
         if (GlobalMemoryStatusEx(&mem) && mem.dwMemoryLoad > 85 && s_bubbleLife == 0) {
-            s_bubbleText = s_highRamQuotes[rand() % s_highRamQuotes.size()];
+            s_bubbleText = s_highRamQuotes[std::uniform_int_distribution<int>(0, s_highRamQuotes.size() - 1)(GetFeatureRNG())];
             s_bubbleLife = 40;
         }
 
@@ -333,7 +378,7 @@ void UpdateFeatures(double /*catX*/, double /*catY*/, int /*catSize*/) {
         if (lt.wHour >= 0 && lt.wHour < 6) ProgressQuest(L"night_owl");
 
         // Random event (20% chance)
-        if (rand() % 100 < 20 && s_bubbleLife == 0) TriggerRandomEvent();
+        if (std::uniform_int_distribution<int>(0, 99)(GetFeatureRNG()) < 20 && s_bubbleLife == 0) TriggerRandomEvent();
     }
 }
 

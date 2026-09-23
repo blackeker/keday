@@ -13,6 +13,9 @@ void PlayMeowAsync();
 // Purring sound (async, non-blocking)
 void PlayPurrAsync();
 
+// Graceful shutdown – waits for playing threads to finish
+void ShutdownAudio();
+
 // Low-level character sound dispatcher
 void PlayCharacterSoundAsync(const std::wstring& character, int volume);
 

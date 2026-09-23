@@ -8,8 +8,15 @@
 #include <cmath>
 #include <algorithm>
 #include <string>
+#include <random>
 
 #pragma comment(lib, "ole32.lib")
+
+// ── Modern random number generator ───────────────────────────
+static std::mt19937& GetRNG() {
+    static std::mt19937 rng(std::random_device{}());
+    return rng;
+}
 
 // ── IAudioMeterInformation guard ─────────────────────────────
 #ifndef __IAudioMeterInformation_INTERFACE_DEFINED__
@@ -78,32 +85,55 @@ bool IsSpanningWindowLedge(int x, int y, double velocityY, int catSize, int& out
     return false;
 }
 
-// ── Audio peak ────────────────────────────────────────────────
+// ── Audio peak (cached COM objects) ───────────────────────────
 float GetSystemAudioPeakVolume() {
+    static IMMDeviceEnumerator* s_pEnum = nullptr;
+    static IMMDevice* s_pDevice = nullptr;
+    static IAudioMeterInformation* s_pMeter = nullptr;
+
+    // Initialize COM objects on first call
+    if (!s_pEnum) {
+        HRESULT hr = CoCreateInstance(__uuidof(MMDeviceEnumerator), NULL,
+                                      CLSCTX_ALL, __uuidof(IMMDeviceEnumerator), (void**)&s_pEnum);
+        if (FAILED(hr)) { s_pEnum = nullptr; return 0.0f; }
+    }
+    if (!s_pDevice) {
+        HRESULT hr = s_pEnum->GetDefaultAudioEndpoint(eRender, eMultimedia, &s_pDevice);
+        if (FAILED(hr)) { s_pDevice = nullptr; return 0.0f; }
+    }
+    if (!s_pMeter) {
+        HRESULT hr = s_pDevice->Activate(__uuidof(IAudioMeterInformation),
+                                          CLSCTX_ALL, NULL, (void**)&s_pMeter);
+        if (FAILED(hr)) { s_pMeter = nullptr; return 0.0f; }
+    }
+
     float peak = 0.0f;
-    IMMDeviceEnumerator* pEnum = nullptr;
-    HRESULT hr = CoCreateInstance(__uuidof(MMDeviceEnumerator), NULL,
-                                  CLSCTX_ALL, __uuidof(IMMDeviceEnumerator), (void**)&pEnum);
-    if (SUCCEEDED(hr)) {
-        IMMDevice* pDevice = nullptr;
-        hr = pEnum->GetDefaultAudioEndpoint(eRender, eMultimedia, &pDevice);
-        if (SUCCEEDED(hr)) {
-            IAudioMeterInformation* pMeter = nullptr;
-            hr = pDevice->Activate(__uuidof(IAudioMeterInformation),
-                                   CLSCTX_ALL, NULL, (void**)&pMeter);
-            if (SUCCEEDED(hr)) {
-                pMeter->GetPeakValue(&peak);
-                pMeter->Release();
-            }
-            pDevice->Release();
-        }
-        pEnum->Release();
+    HRESULT hr = s_pMeter->GetPeakValue(&peak);
+    if (FAILED(hr)) {
+        // Device might have changed, release and retry next call
+        if (s_pMeter) { s_pMeter->Release(); s_pMeter = nullptr; }
+        if (s_pDevice) { s_pDevice->Release(); s_pDevice = nullptr; }
+        return 0.0f;
     }
     return peak;
 }
 
 // ── Main state-machine update ─────────────────────────────────
 bool UpdateNekoLogic() {
+    // ── Delta-time calculation ────────────────────────────────
+    static ULONGLONG s_lastUpdateTime = 0;
+    ULONGLONG currentTime = GetTickCount64();
+    double dt = 1.0;
+    if (s_lastUpdateTime > 0) {
+        double elapsedMs = (double)(currentTime - s_lastUpdateTime);
+        double expectedMs = 250.0 - (g_settings.speed * 6.0);
+        if (expectedMs < 50.0) expectedMs = 50.0;
+        dt = elapsedMs / expectedMs;
+        if (dt > 3.0) dt = 3.0;
+        if (dt < 0.1) dt = 0.1;
+    }
+    s_lastUpdateTime = currentTime;
+
     // ── Snapshot for dirty-check ──────────────────────────────
     double    oldX           = g_nekoX;
     double    oldY           = g_nekoY;
@@ -133,8 +163,8 @@ bool UpdateNekoLogic() {
     }
 
     // ── Typing speed (throttled) ──────────────────────────────
-    static DWORD s_lastKeyCheck = 0;
-    DWORD now = GetTickCount();
+    static ULONGLONG s_lastKeyCheck = 0;
+    ULONGLONG now = GetTickCount64();
     if (now - s_lastKeyCheck > 80) {
         s_lastKeyCheck = now;
         int pressed = 0;
@@ -147,7 +177,7 @@ bool UpdateNekoLogic() {
     }
 
     // ── Clipboard (throttled to every 2 seconds) ──────────────
-    static DWORD s_lastClipCheck = 0;
+    static ULONGLONG s_lastClipCheck = 0;
     if (now - s_lastClipCheck > 2000) {
         s_lastClipCheck = now;
         ProcessClipboard();
@@ -159,9 +189,9 @@ bool UpdateNekoLogic() {
 
     // ── Particles update ──────────────────────────────────────
     for (auto it = g_particles.begin(); it != g_particles.end(); ) {
-        it->x += it->vx;
-        it->y += it->vy;
-        it->vy -= 0.05;
+        it->x += it->vx * dt;
+        it->y += it->vy * dt;
+        it->vy -= 0.05 * dt;
         it->life--;
         if (it->life <= 0) it = g_particles.erase(it);
         else ++it;
@@ -208,7 +238,7 @@ bool UpdateNekoLogic() {
 
     // ── Falling physics ───────────────────────────────────────
     if (g_isFalling) {
-        g_velocityY += GRAVITY;
+        g_velocityY += GRAVITY * dt;
 
         int   ledgeY = 0;
         bool  hitLedge = IsSpanningWindowLedge((int)g_nekoX, (int)g_nekoY,
@@ -217,8 +247,8 @@ bool UpdateNekoLogic() {
         GetNekoMonitorBounds((int)g_nekoX, (int)g_nekoY, rWork);
         int   floorY = rWork.bottom - catSize;
 
-        g_nekoX += g_velocityX;
-        g_nekoY += g_velocityY;
+        g_nekoX += g_velocityX * dt;
+        g_nekoY += g_velocityY * dt;
 
         // Clamp horizontally
         if (g_nekoX < rWork.left)              g_nekoX = rWork.left;
@@ -228,7 +258,7 @@ bool UpdateNekoLogic() {
         if (hitLedge) {
             g_nekoY    = ledgeY - catSize;
             g_velocityY = g_velocityY * BOUNCE;
-            g_velocityX *= 0.6;
+            g_velocityX *= std::pow(0.6, dt);
             if (std::abs(g_velocityY) < 1.5) {
                 g_isFalling = false;
                 g_velocityX = 0;
@@ -239,7 +269,7 @@ bool UpdateNekoLogic() {
         else if (g_nekoY >= floorY) {
             g_nekoY    = floorY;
             g_velocityY = g_velocityY * BOUNCE;
-            g_velocityX *= 0.7;
+            g_velocityX *= std::pow(0.7, dt);
             if (std::abs(g_velocityY) < 1.5) {
                 g_isFalling = false;
                 g_velocityX = 0;
@@ -286,10 +316,10 @@ bool UpdateNekoLogic() {
         if (!g_isWanderActive) {
             bool settled = onFloor || onLedge;
             // Trigger new wander: settled, idle long enough, 1/60 chance per frame
-            if (settled && g_idleTicks > 30 && rand() % 60 == 0) {
+            if (settled && g_idleTicks > 30 && std::uniform_int_distribution<int>(0, 59)(GetRNG()) == 0) {
                 g_isWanderActive = true;
                 int range = (screenRight - screenLeft - catSize);
-                g_wanderTargetX = screenLeft + (range > 0 ? rand() % range : 0);
+                g_wanderTargetX = screenLeft + (range > 0 ? std::uniform_int_distribution<int>(0, range - 1)(GetRNG()) : 0);
                 g_wanderTargetY = onLedge ? (double)(ledgeY2 - catSize) : (double)(screenBottom - catSize);
             }
         }
@@ -327,7 +357,7 @@ bool UpdateNekoLogic() {
         if (g_idleTicks > 120) {
             if (g_currentState != STATE_SLEEPING && g_currentState != STATE_CODING &&
                 g_currentState != STATE_BOX) {
-                int r = rand() % 3;
+                int r = std::uniform_int_distribution<int>(0, 2)(GetRNG());
                 g_currentState      = (r == 0) ? STATE_SLEEPING :
                                       (r == 1) ? STATE_CODING   : STATE_BOX;
                 g_currentFrameIndex = 0;
@@ -347,7 +377,7 @@ bool UpdateNekoLogic() {
         } else if (g_idleTicks > 12) {
             if (g_currentState != STATE_ALERT && g_currentState != STATE_SCRATCH_SELF &&
                 g_currentState != STATE_CODING && g_currentState != STATE_BOX) {
-                g_currentState      = (rand() % 2 == 0) ? STATE_SCRATCH_SELF : STATE_ALERT;
+                g_currentState      = (std::uniform_int_distribution<int>(0, 1)(GetRNG()) == 0) ? STATE_SCRATCH_SELF : STATE_ALERT;
                 g_currentFrameIndex = 0;
             }
         }
@@ -371,8 +401,8 @@ bool UpdateNekoLogic() {
 
         double moveX = (dx / distance) * speed;
         double moveY = (dy / distance) * speed;
-        g_nekoX += moveX;
-        g_nekoY += moveY;
+        g_nekoX += moveX * dt;
+        g_nekoY += moveY * dt;
 
         // Clamp to monitor
         if (g_nekoX < screenLeft)              g_nekoX = screenLeft;
@@ -389,7 +419,7 @@ bool UpdateNekoLogic() {
     }
 
     // ── Zzz particles ─────────────────────────────────────────
-    if (g_currentState == STATE_SLEEPING && rand() % 12 == 0)
+    if (g_currentState == STATE_SLEEPING && std::uniform_int_distribution<int>(0, 11)(GetRNG()) == 0)
         SpawnHearts(catSize / 2.0, 20.0, 1, L'Z');
 
     // ── Keyboard → CODING state ───────────────────────────────

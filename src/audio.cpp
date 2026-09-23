@@ -6,6 +6,9 @@
 #include <math.h>
 #include <vector>
 #include <thread>
+#include <atomic>
+
+static std::atomic<bool> g_shutdownAudio{false};
 
 void PlaySoundWave(double frequency, int durationMs, int volumePercent) {
     if (volumePercent <= 0) return;
@@ -59,27 +62,32 @@ void PlayCharacterSoundAsync(const std::wstring& character, int volume) {
     std::thread([character, volume]() {
         if (character == L"dog") {
             PlaySoundWave(200.0, 70, volume);
+            if (g_shutdownAudio.load()) { g_soundPlaying.store(false, std::memory_order_release); return; }
             Sleep(80);
             PlaySoundWave(230.0, 90, volume);
         } else if (character == L"sakura" || character == L"tomoyo") {
             PlaySoundWave(980.0,  50, volume);
+            if (g_shutdownAudio.load()) { g_soundPlaying.store(false, std::memory_order_release); return; }
             Sleep(60);
             PlaySoundWave(1300.0, 80, volume);
         } else if (character == L"bsd") {
             PlaySoundWave(400.0, 40, volume);
+            if (g_shutdownAudio.load()) { g_soundPlaying.store(false, std::memory_order_release); return; }
             Sleep(50);
             PlaySoundWave(600.0, 40, volume);
+            if (g_shutdownAudio.load()) { g_soundPlaying.store(false, std::memory_order_release); return; }
             Sleep(50);
             PlaySoundWave(800.0, 60, volume);
         } else {
-            // Default: cute cat meow
             PlaySoundWave(650.0,  50, volume);
+            if (g_shutdownAudio.load()) { g_soundPlaying.store(false, std::memory_order_release); return; }
             Sleep(60);
             PlaySoundWave(850.0,  60, volume);
+            if (g_shutdownAudio.load()) { g_soundPlaying.store(false, std::memory_order_release); return; }
             Sleep(70);
             PlaySoundWave(1100.0, 120, volume);
         }
-        g_soundPlaying = false;
+        g_soundPlaying.store(false, std::memory_order_release);
     }).detach();
 }
 
@@ -92,9 +100,16 @@ void PlayPurrAsync() {
     int vol = g_settings.volume;
     std::thread([vol]() {
         for (int i = 0; i < 3; ++i) {
+            if (g_shutdownAudio.load()) break;
             PlaySoundWave(160.0, 35, vol);
             Sleep(90);
         }
-        g_soundPlaying = false;
+        g_soundPlaying.store(false, std::memory_order_release);
     }).detach();
+}
+
+void ShutdownAudio() {
+    g_shutdownAudio.store(true);
+    for (int i = 0; i < 20 && g_soundPlaying.load(); ++i)
+        Sleep(50);
 }

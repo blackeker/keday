@@ -8,8 +8,8 @@ IDI_APP_ICON ICON "assets/icon.ico"
 
 // Version Information
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION     1,2,0,0
-PRODUCTVERSION  1,2,0,0
+FILEVERSION     3,2,0,0
+PRODUCTVERSION  3,2,0,0
 FILEFLAGSMASK   VS_FFI_FILEFLAGSMASK
 FILEFLAGS       0
 FILEOS          VOS__WINDOWS32
@@ -22,12 +22,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName",      "Keday Desktop Pet"
             VALUE "FileDescription",  "Keday - Masaüstü Yazılımcı Kedisi"
-            VALUE "FileVersion",      "1.2.0.0"
+            VALUE "FileVersion",      "3.2.0.0"
             VALUE "InternalName",     "Keday"
             VALUE "LegalCopyright",   "Copyright © 2026 Keday. All rights reserved."
             VALUE "OriginalFilename", "Keday.exe"
             VALUE "ProductName",      "Keday"
-            VALUE "ProductVersion",   "1.2.0.0"
+            VALUE "ProductVersion",   "3.2.0.0"
         END
     END
     BLOCK "VarFileInfo"

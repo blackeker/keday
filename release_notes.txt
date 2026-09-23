@@ -19,11 +19,11 @@
 
 ## 🐾 Teknik Detaylar
 
-- **Electron Builder 24.13.3:**  
-  Uygulama geliştirilirken Electron Builder 24.13.3 kullanıldı.
+- **Native C++ / Win32 API / GDI+:**  
+  Uygulama tamamen Native C++ / Win32 API / GDI+ kullanılarak geliştirildi.
 
-- **NSIS 3.0.4.1:**  
-  Kurulum işlemleri NSIS 3.0.4.1 kullanılarak gerçekleştirildi.
+- **NSIS:**  
+  Kurulum işlemleri NSIS kullanılarak gerçekleştirildi.
 
 - **Windows x64 desteği:**  
   Uygulama Windows x64 platformunda çalışıyor.
